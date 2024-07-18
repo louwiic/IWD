@@ -14,6 +14,7 @@ Chart.register(CategoryScale);
 import AdminLayout from "layouts/Admin.js";
 import Login from "./views/Login";
 import PrivateRoute from "./components/privateRoute";
+import SignupPage from "views/SignupPage";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -21,6 +22,7 @@ root.render(
   <BrowserRouter>
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/signup" component={SignupPage} />
       <PrivateRoute path="/admin" component={AdminLayout} />
       <Redirect from="/" to="/admin/dashboard" />
     </Switch>

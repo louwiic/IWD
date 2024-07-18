@@ -31,7 +31,7 @@ function FixedPlugin({
   color,
   setColor,
   image,
-  setImage
+  setImage,
 }) {
   // constructor(props) {
   //   super(props);
@@ -54,8 +54,7 @@ function FixedPlugin({
         <Dropdown.Toggle
           id="dropdown-fixed-plugin"
           variant=""
-          className="text-white border-0 opacity-100"
-        >
+          className="text-white border-0 opacity-100">
           <i className="fas fa-cogs fa-2x mt-1"></i>
         </Dropdown.Toggle>
         <Dropdown.Menu>
@@ -74,33 +73,27 @@ function FixedPlugin({
               <Badge
                 variant="secondary"
                 className={color === "black" ? "active" : ""}
-                onClick={() => setColor("black")}
-              ></Badge>
+                onClick={() => setColor("black")}></Badge>
               <Badge
                 variant="azure"
                 className={color === "azure" ? "active" : ""}
-                onClick={() => setColor("azure")}
-              ></Badge>
+                onClick={() => setColor("azure")}></Badge>
               <Badge
                 variant="green"
                 className={color === "green" ? "active" : ""}
-                onClick={() => setColor("green")}
-              ></Badge>
+                onClick={() => setColor("green")}></Badge>
               <Badge
                 variant="orange"
                 className={color === "orange" ? "active" : ""}
-                onClick={() => setColor("orange")}
-              ></Badge>
+                onClick={() => setColor("orange")}></Badge>
               <Badge
                 variant="red"
                 className={color === "red" ? "active" : ""}
-                onClick={() => setColor("red")}
-              ></Badge>
+                onClick={() => setColor("red")}></Badge>
               <Badge
                 variant="purple"
                 className={color === "purple" ? "active" : ""}
-                onClick={() => setColor("purple")}
-              ></Badge>
+                onClick={() => setColor("purple")}></Badge>
             </div>
             <div className="clearfix"></div>
           </li>
@@ -112,8 +105,7 @@ function FixedPlugin({
               onClick={(e) => {
                 e.preventDefault();
                 setImage(sideBarImage1);
-              }}
-            >
+              }}>
               <img alt="..." src={sideBarImage1}></img>
             </a>
           </li>
@@ -124,8 +116,7 @@ function FixedPlugin({
               onClick={(e) => {
                 e.preventDefault();
                 setImage(sideBarImage2);
-              }}
-            >
+              }}>
               <img alt="..." src={sideBarImage2}></img>
             </a>
           </li>
@@ -136,8 +127,7 @@ function FixedPlugin({
               onClick={(e) => {
                 e.preventDefault();
                 setImage(sideBarImage3);
-              }}
-            >
+              }}>
               <img alt="..." src={sideBarImage3}></img>
             </a>
           </li>
@@ -148,8 +138,7 @@ function FixedPlugin({
               onClick={(e) => {
                 e.preventDefault();
                 setImage(sideBarImage4);
-              }}
-            >
+              }}>
               <img alt="..." src={sideBarImage4}></img>
             </a>
           </li>
@@ -161,8 +150,7 @@ function FixedPlugin({
                 href="http://www.creative-tim.com/product/light-bootstrap-dashboard-react"
                 rel="noopener noreferrer"
                 target="_blank"
-                variant="info"
-              >
+                variant="info">
                 Download, it's free!
               </Button>
             </div>
@@ -175,8 +163,7 @@ function FixedPlugin({
                 href="http://www.creative-tim.com/product/light-bootstrap-dashboard-react"
                 rel="noopener noreferrer"
                 target="_blank"
-                variant="default"
-              >
+                variant="default">
                 Checkout docs.
               </Button>
             </div>
@@ -192,8 +179,7 @@ function FixedPlugin({
                 href="http://www.creative-tim.com/product/light-bootstrap-dashboard-pro-react"
                 rel="noopener noreferrer"
                 target="_blank"
-                variant="primary"
-              >
+                variant="primary">
                 Get The PRO Version!
               </Button>
             </div>
@@ -205,15 +191,13 @@ function FixedPlugin({
             <Button
               className="btn-social btn-outline btn-round sharrre"
               id="twitter"
-              variant="twitter"
-            >
+              variant="twitter">
               <i className="fab fa-twitter"></i>· 256
             </Button>
             <Button
               className="btn-social btn-outline btn-round sharrre"
               id="facebook"
-              variant="facebook"
-            >
+              variant="facebook">
               <i className="fab fa-facebook-square"></i>· 426
             </Button>
           </li>

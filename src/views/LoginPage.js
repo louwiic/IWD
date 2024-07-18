@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Row, Col, Form, Button, Toast } from "react-bootstrap";
-import mongolfiere from "assets/img/mongolfiere.jpg";
-import InsightsPage from "./InsightPage";
-import SignUpForm from "./Register";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import "../css/loginPage.css";
 
 const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
   const [username, setUsername] = useState("");
@@ -19,6 +17,16 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    /*  localStorage.setItem("authToken", "token");
+    setToastVariant("success");
+    setToastMessage("Connexion réussie !");
+    setShowToast(true);
+    setTimeout(() => {
+      history.push("/admin/dashboard");
+    }, 900);
+
+    return; */
 
     try {
       const auth = getAuth();
@@ -36,7 +44,7 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
       setShowToast(true);
       setTimeout(() => {
         history.push("/admin/dashboard");
-      }, 900); // Délai avant redirection pour montrer le toast
+      }, 900);
     } catch (error) {
       console.error("Error logging in:", error);
       setToastVariant("danger");
@@ -52,24 +60,47 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
   };
 
   return (
-    <Container fluid className="d-flex align-items-center min-vh-100">
-      <Row className="w-100">
-        <Col md={7} className="p-0">
-          <div className="d-flex align-items-center justify-content-center h-100 bg-white">
+    <Container fluid className="d-flex min-vh-100">
+      <Row className="">
+        <Col md={4} className="p-0">
+          <div className="gradient-bg d-flex flex-column align-items-center justify-content-center">
             <img
-              src={mongolfiere}
-              alt="Hot air balloons"
-              className="img-fluid"
-              style={{ width: "100%", height: "100vh", objectFit: "cover" }}
+              src={require("../assets/img/sphere.png")}
+              alt="Logo"
+              className="sphere"
+            />
+            <img
+              src={require("../assets/img/logo_lts.png")}
+              alt="Logo"
+              className="logo"
             />
           </div>
         </Col>
         <Col
-          md={5}
+          md={8}
           className="d-flex align-items-center justify-content-center">
-          <div className="w-75">
-            <h1 style={{ fontWeight: "bold" }}>Bienvenue</h1>
-            <p style={{ fontSize: 28 }}>Connectez-vous</p>
+          <div className="w-75 login-form-container">
+            <h1>Bienvenue</h1>
+            <p className="info-text">Je n’ai pas encore de compte</p>
+            <p className="subtext">
+              Vous devez créer votre compte personnel à l’aide d’un login et
+              d’un mot de passe de votre choix. Assurez-vous de sauvegarder vos
+              identifiants pour pouvoir accéder à vos résultats à tout moment
+            </p>
+            <Button
+              onClick={() => history.push("/signup")}
+              className="btn-fill mt-3 login-button"
+              type="submit"
+              disabled={isLoading}>
+              {isLoading ? "Chargement..." : "Créer un compte"}
+            </Button>
+            <div className="divider-container">
+              <span className="divider-line"></span>
+              <span className="divider-text">
+                Vous avez déjà un compte ? Continuez avec votre email
+              </span>
+              <span className="divider-line"></span>
+            </div>
             <Form onSubmit={handleLogin} className="mt-5">
               <Form.Group>
                 <Form.Label>Nom d’utilisateur</Form.Label>
@@ -80,7 +111,6 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
                   onChange={(e) => setUsername(e.target.value)}
                 />
               </Form.Group>
-
               <Form.Group className="mt-3">
                 <Form.Label>Mot de passe</Form.Label>
                 <Form.Control
@@ -90,70 +120,16 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Form.Group>
-
               <Button
-                className="btn-fill pull-right mt-3"
+                className="btn-fill mt-3   btn-primary-border"
                 type="submit"
-                style={{
-                  backgroundColor: "#CE9136",
-                  borderWidth: 0,
-                }}
                 disabled={isLoading}>
                 {isLoading ? "Chargement..." : "Se connecter"}
               </Button>
-
-              {/*  <Button variant="primary" type="submit" className="mt-4 w-100">
-                Login
-              </Button> */}
             </Form>
-            {/*  <Button
-              variant="link"
-              className="mt-3"
-              onClick={handleForgotPassword}
-              style={{
-                textDecoration: "none",
-                padding: 0,
-                color: "rgb(150, 75, 0)",
-                borderWidth: 0,
-              }}>
-              Avez-vous perdu votre mot de passe ?
-            </Button>
-            <Button
-              variant="link"
-              className="mt-3"
-              onClick={() => {
-                handleShowLogin(false);
-                setShowRegisterForm(false);
-              }}
-              style={{
-                textDecoration: "none",
-                padding: 0,
-                color: "#007bff",
-                borderWidth: 0,
-              }}>
-              Ou créer son compte
-            </Button> */}
-            <div className="mt-3 text-center mt-5">
-              <a
-                style={{
-                  textDecoration: "none",
-                  padding: 0,
-                  color: "rgb(150, 75, 0)",
-                  borderWidth: 0,
-                  fontStyle: "italic",
-                }}
-                onClick={() => {
-                  handleShowLogin(false);
-                  setShowRegisterForm(false);
-                }}>
-                Vous n'avez pas de compte ? Créer son compte
-              </a>
-            </div>
           </div>
         </Col>
       </Row>
-
-      {/* Toasts for error and success messages */}
       <Toast
         onClose={() => setShowToast(false)}
         show={showToast}

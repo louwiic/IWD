@@ -16,7 +16,7 @@ const Login = () => {
     <Container fluid>
       {/* <LoginForm /> */}
       <Row className="justify-content-center">
-        {showLoginForm ? (
+        {true ? (
           <LoginPage
             handleShowLogin={(state) => setShowLoginForm(state)}
             setShowRegisterForm={(state) => setShowRegisterForm(state)}

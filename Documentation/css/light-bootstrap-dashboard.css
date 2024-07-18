@@ -402,13 +402,13 @@ body > .navbar-collapse[data-color="green"]:after {
 
 .sidebar[data-color="orange"]:after,
 body > .navbar-collapse[data-color="orange"]:after {
-  background: #FFA534;
-  background: -moz-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #FFA534), color-stop(100%, #ff5221));
-  background: -webkit-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-  background: -o-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-  background: -ms-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-  background: linear-gradient(to bottom, #FFA534 0%, #ff5221 100%);
+  background: #CE9136;
+  background: -moz-linear-gradient(top, #CE9136 0%, #CFAA71 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #CE9136), color-stop(100%, #CFAA71));
+  background: -webkit-linear-gradient(top, #CE9136 0%, #CFAA71 100%);
+  background: -o-linear-gradient(top, #CE9136 0%, #CFAA71 100%);
+  background: -ms-linear-gradient(top, #CE9136 0%, #CFAA71 100%);
+  background: linear-gradient(to bottom, #CE9136 0%, #CFAA71 100%);
   background-size: 150% 150%; }
 
 .sidebar[data-color="red"]:after,
@@ -1545,7 +1545,7 @@ body > .navbar-collapse[data-color="purple"]:after {
   background-color: #a1e82c; }
 
 .navbar-ct-orange {
-  background-color: #ffbc67; }
+  background-color: #CE9136; }
 
 .navbar-ct-red {
   background-color: #fc727a; }

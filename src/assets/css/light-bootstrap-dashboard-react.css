@@ -13,6 +13,49 @@
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
  */
+
+ /* src/assets/fonts/fonts.css */
+@font-face {
+  font-family: 'Poppins';
+  src: url('~assets/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('~assets/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('~assets/fonts/Poppins-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Ajoutez les autres variantes de police de manière similaire */
+@font-face {
+  font-family: 'Poppins';
+  src: url('~assets/fonts/Poppins-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('~assets/fonts/Poppins-BlackItalic.ttf') format('truetype');
+  font-weight: 900;
+  font-style: italic;
+}
+
+
+body {
+  font-family: 'MyFont', sans-serif;
+}
+
 /*      light colors         */
 @keyframes spin {
   from {
@@ -39,6 +82,8 @@
     -ms-transform: rotate(360deg); } }
 
 /*           Font Smoothing      */
+
+
 body,
 h1, .h1,
 h2, .h2,
@@ -478,12 +523,12 @@ body > .navbar-collapse {
   .sidebar[data-color="orange"]:after,
   body > .navbar-collapse[data-color="orange"]:after {
     background: #FFA534;
-    background: -moz-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #FFA534), color-stop(100%, #ff5221));
-    background: -webkit-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-    background: -o-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-    background: -ms-linear-gradient(top, #FFA534 0%, #ff5221 100%);
-    background: linear-gradient(to bottom, #FFA534 0%, #ff5221 100%);
+    background: -moz-linear-gradient(top, #FFA534 0%, #FFA534 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #FFA534), color-stop(100%, #FFA534));
+    background: -webkit-linear-gradient(top, #FFA534 0%, #FFA534 100%);
+    background: -o-linear-gradient(top, #FFA534 0%, #FFA534 100%);
+    background: -ms-linear-gradient(top, #FFA534 0%, #FFA534 100%);
+    background: linear-gradient(to bottom, #FFA534 0%, #FFA534 100%);
     background-size: 150% 150%; }
   .sidebar[data-color="red"]:after,
   body > .navbar-collapse[data-color="red"]:after {
@@ -1618,7 +1663,7 @@ body > .navbar-collapse {
   background-color: #a1e82c; }
 
 .navbar-ct-orange {
-  background-color: #ffbc67; }
+  background-color: #FFA534; }
 
 .navbar-ct-red {
   background-color: #fc727a; }
