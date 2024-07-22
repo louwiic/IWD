@@ -1,0 +1,71 @@
+.info-text {
+  font-family: 'Poppins';
+  font-weight: 400;
+  font-size:26px
+ }
+
+/* Modifier la couleur du background du switch quand il est activé */
+.custom-switch .form-check-input:checked ~ .form-check-label::before {
+  background-color: #ce9136;
+  border-color: #ce9136;
+}
+
+/* Modifier la couleur du switch */
+.custom-switch .form-check-input:checked ~ .form-check-label::after {
+  background-color: #fff;
+}
+
+/* Modifier la couleur du background du switch quand il n'est pas activé */
+.custom-switch .form-check-label::before {
+  background-color: #ddd;
+  border-color: #ddd;
+}
+.subtext {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+ 
+}
+
+.switch-container {
+  display: flex;
+  flex-direction: row; /* Align items in a row */
+  align-items: center;
+  gap: 10px; /* Space between the switch and the label */
+  margin-top: 20px;
+}
+
+.switch {
+  width: 60px;
+  height: 30px;
+  background-color: #BCBCBC30; /* Background color when off */
+  border-radius: 15px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.switch.on {
+  background-color: #d4b279; /* Background color when on */
+}
+
+.switch-handle {
+  width: 24px;
+  height: 24px;
+  background-color: #c3914a; /* Handle color */
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.3s;
+}
+
+.switch.on .switch-handle {
+  left: 33px;
+}
+
+.switch-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #000; /* Adjust the text color as needed */
+}

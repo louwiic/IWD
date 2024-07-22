@@ -1,0 +1,95 @@
+/* loginPage.css */
+.gradient-bg {
+  background: linear-gradient(to right, #7f151a, #ce9136);
+  color: white;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+}
+
+.sphere {
+  width: 735px;
+  height: auto;
+  max-width: 300px;
+  margin-bottom: 20px;
+}
+
+.logo {
+  width: 122px;
+  height: auto;
+  max-width: 222px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-family: 'Poppins';
+  font-weight: bold;
+}
+
+.info-text {
+  font-family: 'Poppins';
+  font-weight: 400;
+  font-size:26px
+ }
+
+.subtext {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.btn-fill {
+  width: 100%;
+}
+
+.login-button {
+  background-color: #ce9136;
+  border-width: 0;
+}
+
+
+.login-button-alt {
+  background-color: transparent;
+  border-color: #ce9136;
+  border-width: 1px;
+  color: #ce9136;
+}
+
+.forgot-password-link {
+  text-decoration: none;
+  padding: 0;
+  color: rgb(150, 75, 0);
+  border-width: 0;
+  font-style: italic;
+}
+
+.login-form-container {
+ }
+
+.toast-notification {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.divider-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 47px;
+  margin-bottom: 30px;
+}
+
+.divider-line {
+  height: 1px;
+  background-color: #807a7a;
+  flex: 1;
+}
+
+.divider-text {
+  color: #807a7a;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+}

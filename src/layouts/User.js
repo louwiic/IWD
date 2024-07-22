@@ -15,20 +15,15 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { Component } from "react";
+import React from "react";
 import { useLocation, Route, Switch } from "react-router-dom";
-
-import AdminNavbar from "components/Navbars/AdminNavbar";
+import UserNavbar from "components/Navbars/UserNavbar";
 import Footer from "components/Footer/Footer";
-import Sidebar from "components/Sidebar/Sidebar";
 import FixedPlugin from "components/FixedPlugin/FixedPlugin.js";
-
 import routes from "routes.js";
 
-import sidebarImage from "assets/img/sidebar-3.jpg";
-
 function Admin() {
-  const [image, setImage] = React.useState(sidebarImage);
+  const [image, setImage] = React.useState("");
   const [color, setColor] = React.useState("orange");
   const [hasImage, setHasImage] = React.useState(true);
   const location = useLocation();
@@ -36,7 +31,7 @@ function Admin() {
 
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
-      if (prop.layout === "/admin") {
+      if (prop.layout === "/user") {
         return (
           <Route
             path={prop.layout + prop.path}
@@ -49,6 +44,7 @@ function Admin() {
       }
     });
   };
+
   React.useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
@@ -62,12 +58,12 @@ function Admin() {
       element.parentNode.removeChild(element);
     }
   }, [location]);
+
   return (
     <>
-      <div className="wrapper">
-        <Sidebar color={color} image={""} routes={routes} />
-        <div className="main-panel" ref={mainPanel}>
-          <AdminNavbar />
+      <div className="wrapper" style={{ width: "100%" }}>
+        <div className="main-panel" ref={mainPanel} style={{ width: "100%" }}>
+          <UserNavbar />
           <div className="content">
             <Switch>{getRoutes(routes)}</Switch>
           </div>

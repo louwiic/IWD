@@ -16,22 +16,40 @@
 
 */
 import Dashboard from "views/Dashboard.js";
-import UserProfile from "views/UserProfile.js";
-import TableList from "views/TableList.js";
-import Typography from "views/Typography.js";
-import Icons from "views/Icons.js";
-import Maps from "views/Maps.js";
-import Notifications from "views/Notifications.js";
-import Upgrade from "views/Upgrade.js";
 import Questions from "views/Questions";
+import Upgrade from "views/Upgrade.js";
+import Home from "views/Home.js";
+import User from "views/User";
+import Entreprise from "views/Entreprise";
+import Test from "views/Test";
+import EntrepriseUser from "views/EntrepriseUser";
+const icon_overview = require("../src/assets/icon_overview.png");
+const icon_question = require("../src/assets/icon_question.png");
+const icon_user = require("../src/assets/icon_user.png");
+const icon_entreprise = require("../src/assets/icon_entreprise.png");
 
 const dashboardRoutes = [
   {
-    upgrade: true,
-    path: "/upgrade",
-    name: "Upgrade to PRO",
-    icon: "nc-icon nc-alien-33",
-    component: Upgrade,
+    path: "/home",
+    name: "Accueil",
+    icon: icon_overview,
+    component: Home,
+    layout: "/admin",
+    display: true,
+  },
+  {
+    path: "/users",
+    name: "Utilisateurs",
+    icon: icon_user,
+    component: User,
+    layout: "/admin",
+    display: true,
+  },
+  {
+    path: "/entreprise/users",
+    name: "Entreprise utilisateurs",
+    icon: icon_user,
+    component: EntrepriseUser,
     layout: "/admin",
   },
   {
@@ -40,13 +58,54 @@ const dashboardRoutes = [
     icon: "nc-icon nc-chart-pie-35",
     component: Dashboard,
     layout: "/admin",
+    display: false,
   },
   {
-    path: "/user",
+    path: "/answers",
     name: "Questionnaire",
-    icon: "nc-icon nc-notes",
+    icon: icon_question,
     component: Questions,
     layout: "/admin",
+    display: true,
+  },
+  {
+    path: "/entreprise",
+    name: "Entreprises",
+    icon: icon_entreprise,
+    component: Entreprise,
+    layout: "/admin",
+    display: true,
+  },
+  /* --- candidat --- */
+  {
+    path: "/test",
+    name: "Test",
+    icon: icon_question,
+    component: Test,
+    layout: "/user",
+  },
+  {
+    path: "/home",
+    name: "Accueil",
+    icon: icon_overview,
+    component: Home,
+    layout: "/user",
+    display: false,
+  },
+  {
+    path: "/users",
+    name: "Utilisateurs",
+    icon: icon_user,
+    component: User,
+    layout: "/user",
+    display: false,
+  },
+  {
+    path: "/entreprise/users",
+    name: "Entreprise utilisateurs",
+    icon: icon_user,
+    component: EntrepriseUser,
+    layout: "/user",
   },
   /*   {
     path: "/user",

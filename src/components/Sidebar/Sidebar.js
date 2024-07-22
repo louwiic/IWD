@@ -29,29 +29,29 @@ function Sidebar({ color, image, routes }) {
   };
   return (
     <div className="sidebar" data-image={image} data-color={color}>
-      <div
+      {/* <div
         className="sidebar-background"
         style={{
-          backgroundImage: "url(" + image + ")"
+          backgroundImage: "url(" + image + ")",
         }}
-      />
+      /> */}
       <div className="sidebar-wrapper">
         <div className="logo d-flex align-items-center justify-content-start">
           <a
             href="https://www.creative-tim.com?ref=lbd-sidebar"
-            className="simple-text logo-mini mx-1"
-          >
+            className="simple-text">
             <div className="logo-img">
-              <img src={require("assets/img/reactlogo.png")} alt="..." />
+              <img
+                src={require("../../assets/img/logo_lts.png")}
+                alt="Logo"
+                className="logo"
+              />
             </div>
-          </a>
-          <a className="simple-text" href="http://www.creative-tim.com">
-            Creative Tim
           </a>
         </div>
         <Nav>
           {routes.map((prop, key) => {
-            if (!prop.redirect)
+            if (!prop.redirect && prop.display)
               return (
                 <li
                   className={
@@ -59,14 +59,18 @@ function Sidebar({ color, image, routes }) {
                       ? "active active-pro"
                       : activeRoute(prop.layout + prop.path)
                   }
-                  key={key}
-                >
+                  key={key}>
                   <NavLink
                     to={prop.layout + prop.path}
                     className="nav-link"
-                    activeClassName="active"
-                  >
-                    <i className={prop.icon} />
+                    activeClassName="active">
+                    {/*  <i className={prop.icon} /> */}
+                    <img
+                      src={prop.icon}
+                      alt={prop.name}
+                      className="nav-icon"
+                      style={{ height: "26px", marginRight: "10px" }}
+                    />
                     <p>{prop.name}</p>
                   </NavLink>
                 </li>
