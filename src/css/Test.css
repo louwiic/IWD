@@ -1,0 +1,33 @@
+.radio-group {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  .radio-container {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+  }
+  
+  .radio-label {
+    margin-right: 5px;
+    color: #424242;
+  }
+  
+  .custom-radio .form-check-input {
+    background-color: #d9d9d9;
+    border-color: #d9d9d9;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .custom-radio .form-check-input:checked {
+    background-color: #ce9136;
+    border-color: #ce9136;
+  }
+  
+  .custom-radio .form-check-input:focus {
+    box-shadow: none;
+  }
+  

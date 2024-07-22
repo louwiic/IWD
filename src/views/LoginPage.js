@@ -43,7 +43,7 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
       setToastMessage("Connexion réussie !");
       setShowToast(true);
       setTimeout(() => {
-        history.push("/admin/dashboard");
+        history.push("/admin/home");
       }, 900);
     } catch (error) {
       console.error("Error logging in:", error);

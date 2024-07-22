@@ -1371,6 +1371,23 @@ body > .navbar-collapse {
   opacity: .50;
   left: 34px; }
 
+  .custom-radio .form-check-input {
+    background-color: #d9d9d9;
+    border-color: #d9d9d9;
+    width: 20px;
+    height: 20px;
+  }
+
+  .custom-radio .form-check-input:checked {
+    background-color: #ce9136;
+    border-color: #ce9136;
+  }
+  
+  .custom-radio .form-check-input:focus {
+    box-shadow: none;
+  }
+  
+  
 .form-check-radio input[type="radio"] + .form-check-sign:after,
 .form-check-radio input[type="radio"] {
   opacity: 0;

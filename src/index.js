@@ -15,6 +15,7 @@ import AdminLayout from "layouts/Admin.js";
 import Login from "./views/Login";
 import PrivateRoute from "./components/privateRoute";
 import SignupPage from "views/SignupPage";
+import User from "layouts/User";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -24,6 +25,7 @@ root.render(
       <Route path="/login" component={Login} />
       <Route path="/signup" component={SignupPage} />
       <PrivateRoute path="/admin" component={AdminLayout} />
+      <PrivateRoute path="/user" component={User} />
       <Redirect from="/" to="/admin/dashboard" />
     </Switch>
   </BrowserRouter>

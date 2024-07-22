@@ -1,18 +1,31 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Button, Container, Row, Col, Form, Card } from "react-bootstrap";
-
-import { db } from "../firebase/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Container,
+  Row,
+  Col,
+  Form,
+  Card,
+  Alert,
+} from "react-bootstrap";
+import { db, auth } from "../firebase/firebase";
+import { collection, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
+import "../css/Test.css";
 
 const Test = () => {
   const [categories, setCategories] = useState([]);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [responses, setResponses] = useState({});
+  const [showAlert, setShowAlert] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchQuestions = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "questions"));
-      const questionsData = querySnapshot.docs.map((doc) => doc.data());
+      const questionsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setCategories(questionsData);
     } catch (error) {
       console.error("Error fetching questions: ", error);
@@ -21,6 +34,16 @@ const Test = () => {
 
   useEffect(() => {
     fetchQuestions();
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleResponseChange = (question, value) => {
@@ -30,7 +53,21 @@ const Test = () => {
     }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    const currentQuestions = categories[currentCategoryIndex]?.questions || [];
+    const allAnswered = currentQuestions.every(
+      (q) => responses[q] && responses[q] >= 1 && responses[q] <= 9
+    );
+
+    if (!allAnswered) {
+      setShowAlert(true);
+      return;
+    }
+
+    setShowAlert(false);
+
+    await saveResponses();
+
     if (currentCategoryIndex < categories.length - 1) {
       setCurrentCategoryIndex(currentCategoryIndex + 1);
     }
@@ -40,6 +77,42 @@ const Test = () => {
     if (currentCategoryIndex > 0) {
       setCurrentCategoryIndex(currentCategoryIndex - 1);
     }
+  };
+
+  const saveResponses = async () => {
+    const currentCategory = categories[currentCategoryIndex];
+    const testUserRef = collection(db, "test_user");
+    const testRef = collection(db, "Tests");
+
+    // Vérifiez si le document Tests existe pour l'utilisateur lors de la première question
+    if (currentCategoryIndex === 0) {
+      const testDocRef = doc(testRef, currentUser.uid);
+      const testDoc = await getDoc(testDocRef);
+
+      if (!testDoc.exists()) {
+        await setDoc(testDocRef, {
+          userId: currentUser.uid,
+          sharedState: false,
+          testDate: new Date().toISOString(),
+        });
+      }
+    }
+
+    const categoryResponses = currentCategory.questions.map((question) => ({
+      question,
+      response: responses[question],
+    }));
+
+    const testUserDocRef = doc(
+      testUserRef,
+      `${currentUser.uid}_${currentCategoryIndex}`
+    );
+    await setDoc(testUserDocRef, {
+      userId: currentUser.uid,
+      questionIndex: currentCategoryIndex,
+      category: currentCategory.id,
+      responses: categoryResponses,
+    });
   };
 
   const formatQuestion = (question) => {
@@ -58,20 +131,10 @@ const Test = () => {
                 <div style={{ fontSize: "1rem", color: "#424242" }}>
                   <strong>1. Boutons de navigation ci-dessous</strong>
                 </div>
-                {/*  <div style={{ fontSize: "0.9rem", color: "#424242" }}>
-                  <strong> Retour ; Suivant</strong>
-                </div> */}
               </div>
               <Card.Title as="h4">
                 Page {currentCategoryIndex + 1} de {categories.length}
               </Card.Title>
-              <div style={{ fontSize: "1.1rem", color: "#424242" }}>
-                <strong>
-                  {currentCategory
-                    ? currentCategory.categorie
-                    : "Chargement..."}
-                </strong>
-              </div>
               <div
                 style={{
                   fontSize: "0.9rem",
@@ -91,6 +154,11 @@ const Test = () => {
               </div>
             </Card.Header>
             <Card.Body>
+              {showAlert && (
+                <Alert variant="danger">
+                  Veuillez répondre à toutes les questions avant de continuer.
+                </Alert>
+              )}
               {currentCategory ? (
                 currentCategory.questions.map((q, index) => (
                   <Form.Group key={index} className="mt-3">
@@ -103,15 +171,13 @@ const Test = () => {
                         {formatQuestion(q)}
                       </span>
                     </Form.Label>
-                    <div>
+                    <div className="radio-group">
                       {[...Array(9).keys()].map((i) => (
-                        <span className="mt-3" style={{ marginTop: 30 }}>
-                          <span style={{ color: "0.9em" }}>{i + 1} </span>
-                          <Form.Check
-                            inline
-                            /*  label={i + 1} */
+                        <span className="radio-container" key={i}>
+                          <span className="radio-label">{i + 1}</span>
+                          <input
                             type="radio"
-                            key={i}
+                            className="custom-radio"
                             name={`question-${index}`}
                             value={i + 1}
                             onChange={() => handleResponseChange(q, i + 1)}

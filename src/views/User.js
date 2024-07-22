@@ -160,8 +160,8 @@ const User = () => {
               style={{
                 width: "40px",
                 height: "40px",
-                backgroundColor: "#fff",
-                border: "1px solid #ced4da",
+                backgroundColor: "transparent",
+                border: "1px solid transparent",
                 borderRadius: "5px",
                 display: "flex",
                 justifyContent: "center",
