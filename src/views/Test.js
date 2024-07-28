@@ -8,9 +8,19 @@ import {
   Card,
   Alert,
 } from "react-bootstrap";
+import { useHistory } from "react-router-dom";
 import { db, auth } from "../firebase/firebase";
-import { collection, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 import "../css/Test.css";
+import SuccessModal from "../views/Success";
 
 const Test = () => {
   const [categories, setCategories] = useState([]);
@@ -18,6 +28,7 @@ const Test = () => {
   const [responses, setResponses] = useState({});
   const [showAlert, setShowAlert] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const fetchQuestions = async () => {
     try {
@@ -70,6 +81,10 @@ const Test = () => {
 
     if (currentCategoryIndex < categories.length - 1) {
       setCurrentCategoryIndex(currentCategoryIndex + 1);
+      setResponses({}); // Reset responses when moving to the next page
+    } else {
+      // Show success modal
+      setShowSuccessModal(true);
     }
   };
 
@@ -81,38 +96,34 @@ const Test = () => {
 
   const saveResponses = async () => {
     const currentCategory = categories[currentCategoryIndex];
-    const testUserRef = collection(db, "test_user");
     const testRef = collection(db, "Tests");
-
-    // Vérifiez si le document Tests existe pour l'utilisateur lors de la première question
-    if (currentCategoryIndex === 0) {
-      const testDocRef = doc(testRef, currentUser.uid);
-      const testDoc = await getDoc(testDocRef);
-
-      if (!testDoc.exists()) {
-        await setDoc(testDocRef, {
-          userId: currentUser.uid,
-          sharedState: false,
-          testDate: new Date().toISOString(),
-        });
-      }
-    }
+    const testDocRef = doc(testRef, currentUser.uid);
 
     const categoryResponses = currentCategory.questions.map((question) => ({
       question,
       response: responses[question],
     }));
 
-    const testUserDocRef = doc(
-      testUserRef,
-      `${currentUser.uid}_${currentCategoryIndex}`
-    );
-    await setDoc(testUserDocRef, {
-      userId: currentUser.uid,
-      questionIndex: currentCategoryIndex,
+    const newCategoryData = {
       category: currentCategory.id,
       responses: categoryResponses,
-    });
+    };
+
+    // Vérifiez si le document Tests existe pour l'utilisateur
+    const testDoc = await getDoc(testDocRef);
+
+    if (!testDoc.exists()) {
+      await setDoc(testDocRef, {
+        userId: currentUser.uid,
+        sharedState: false,
+        testDate: new Date().toISOString(),
+        categories: [newCategoryData],
+      });
+    } else {
+      await updateDoc(testDocRef, {
+        categories: arrayUnion(newCategoryData),
+      });
+    }
   };
 
   const formatQuestion = (question) => {
@@ -201,17 +212,20 @@ const Test = () => {
                 </Button>
               </div>
               <div>
-                <Button
-                  variant="primary"
-                  onClick={handleNext}
-                  disabled={currentCategoryIndex === categories.length - 1}>
-                  Suivant
+                <Button variant="primary" onClick={handleNext}>
+                  {currentCategoryIndex === categories.length - 1
+                    ? "Terminer"
+                    : "Suivant"}
                 </Button>
               </div>
             </Card.Footer>
           </Card>
         </Col>
       </Row>
+      <SuccessModal
+        show={showSuccessModal}
+        onHide={() => setShowSuccessModal(false)}
+      />
     </Container>
   );
 };
