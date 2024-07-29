@@ -110,7 +110,7 @@ const UseChartData = () => {
       "Avenir-Clair",
       "Volonté",
     ];
-
+    /* 
     const testDocRef = doc(collection(db, "Tests"), userId);
     const testDoc = await getDoc(testDocRef);
 
@@ -129,7 +129,6 @@ const UseChartData = () => {
       categoriesMapping[data.id] = data.category;
     });
 
-    //Get reponse by category
     function getResponsesByCategory(categoryId) {
       // Filtrer les données par category ID
       const categoryData = categoriesData.find(
@@ -141,19 +140,17 @@ const UseChartData = () => {
         return [];
       }
     }
-
-    // Exemple d'utilisation
-
+ */
     //Vous, en tant que leader
     const categLeader = "4jx2EMzabASVxfbKBKxQ";
     const categValeur = "Kn1O3C6oUTXlgyWn5utY";
-    const meToday = getResponsesByCategory(categLeader)?.map(
+    /*  const meToday = getResponsesByCategory(categLeader)?.map(
       (res) => res?.response
     );
     const valeurs = getResponsesByCategory(categValeur)?.map(
       (res) => res?.response
-    );
-    const ES = getResponsesByCategory(categLeader)?.map((res) => res?.response);
+    ); */
+    /*  const ES = getResponsesByCategory(categLeader)?.map((res) => res?.response);
     const COM = [];
     const CONFIANCE = [];
     const CONFLIT = [];
@@ -161,9 +158,8 @@ const UseChartData = () => {
     const VOUSMEME = [];
     const FUTUR = [];
 
-    console.log(" *** meToday ***", meToday);
+    console.log(" *** meToday ***", meToday); */
 
-    /* 
     const meToday = [9, 5, 8, 3, 4, 2]; // 6 valeurs
     const valeurs = [8, 5, 5, 4, 3, 2, 1, 6, 9, 9, 5, 7]; // 12 valeurs
     const ES = [6, 6, 7, 4, 7, 5, 1, 6, 9]; // 9 valeurs
@@ -171,8 +167,8 @@ const UseChartData = () => {
     const CONFIANCE = [4, 5, 3, 2, 8, 7, 7, 9, 7]; // 9 valeurs
     const CONFLIT = [0, 6, 7, 4, 7, 5, 1, 6, 9]; // 9 valeurs
     const RESILIENCE = [4, 5, 3, 2, 8, 7, 7, 9, 5]; // 9 valeurs
-    const VOUSMEME = [8, 4, 5, 3, 7, 8, 6, 6, 2, 9, 4, 5, 3, 6, 7, 9, 4, 5]; // 18 valeurs 
-    const FUTUR = [4, 5, 3, 6, 8, 7, 9]; // 7 valeurs*/
+    const VOUSMEME = [8, 4, 5, 3, 7, 8, 6, 6, 2, 9, 4, 5, 3, 6, 7, 9, 4, 5]; // 18 valeurs
+    const FUTUR = [4, 5, 3, 6, 8, 7, 9]; // 7 valeurs
 
     /*   const volonté = 5; */
 
