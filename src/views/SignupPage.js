@@ -14,6 +14,7 @@ import Autocomplete from "components/AutoComplete";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { doc, setDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import { useHistory } from "react-router-dom/cjs/react-router-dom";
 
 const CustomSwitch = ({
   onCompanyChange,
@@ -80,6 +81,7 @@ const SignupPage = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [companies, setCompanies] = useState([]);
+  const history = useHistory();
 
   const gradientStyle = {
     background: "linear-gradient(135deg, #7F151A, #CE9136)",
@@ -214,14 +216,29 @@ const SignupPage = () => {
     setShowPassword(!showPassword);
   };
 
+  const handleBack = () => {
+    history.push("/login");
+  };
+
   return (
-    <Container fluid style={gradientStyle}>
-      <Row className="w-100 d-flex align-items-center justify-content-center">
+    <Container
+      fluid
+      className="d-flex scrollable-form-container"
+      style={gradientStyle}>
+      <Row className="w-100 d-flex align-items-center justify-content-center flex-fill">
         <Col className="d-flex align-items-center justify-content-center">
           <Card
             className="w-100 p-4"
             style={{ maxWidth: "500px", borderRadius: "10px" }}>
             <Card.Body>
+              <div
+                variant="secondary"
+                onClick={handleBack}
+                className="mb-3"
+                style={{ cursor: "pointer" }}>
+                <i className="fa fa-hand-pointer-o" aria-hidden="true"></i>{" "}
+                &larr; Retour
+              </div>
               <h2 className="mb-4 text-center info-text">Créer un compte</h2>
               <p className="text-center subtext">
                 Créer votre compte personnel à l’aide d’un login et d’un mot de

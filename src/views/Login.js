@@ -13,7 +13,7 @@ const Login = () => {
     setShowRegisterForm(false);
   }, []);
   return (
-    <Container fluid>
+    <>
       {/* <LoginForm /> */}
       <Row className="justify-content-center">
         {true ? (
@@ -52,7 +52,7 @@ const Login = () => {
           </Card>
         </Col> */}
       </Row>
-    </Container>
+    </>
   );
 };
 
