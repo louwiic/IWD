@@ -24,8 +24,12 @@ root.render(
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/signup" component={SignupPage} />
-      <PrivateRoute path="/admin" component={AdminLayout} />
-      <PrivateRoute path="/user" component={User} />
+      <PrivateRoute
+        path="/admin"
+        component={AdminLayout}
+        requiredRole="admin"
+      />
+      <PrivateRoute path="/user" component={User} requiredRole="candidate" />
       <Redirect from="/" to="/admin/dashboard" />
     </Switch>
   </BrowserRouter>

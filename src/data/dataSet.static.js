@@ -1,16 +1,7 @@
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { db } from "../firebase/firebase";
-import { useLocation } from "react-router-dom";
-
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
 
 const UseChartData = () => {
   const [chartData, setChartData] = useState(null);
-  const query = useQuery();
-  const userId = query.get("userId");
 
   const fetchData = async () => {
     const labels = [
@@ -110,55 +101,6 @@ const UseChartData = () => {
       "Avenir-Clair",
       "Volonté",
     ];
-    /* 
-    const testDocRef = doc(collection(db, "Tests"), userId);
-    const testDoc = await getDoc(testDocRef);
-
-    if (!testDoc.exists()) {
-      console.error("No such document!");
-      return;
-    }
-
-    const testData = testDoc.data();
-    const categoriesData = testData.categories || [];
-
-    const questionsSnapshot = await getDocs(collection(db, "questions"));
-    const categoriesMapping = {};
-    questionsSnapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      categoriesMapping[data.id] = data.category;
-    });
-
-    function getResponsesByCategory(categoryId) {
-      // Filtrer les données par category ID
-      const categoryData = categoriesData.find(
-        (item) => item.category === categoryId
-      );
-      if (categoryData) {
-        return categoryData.responses;
-      } else {
-        return [];
-      }
-    }
- */
-    //Vous, en tant que leader
-    const categLeader = "4jx2EMzabASVxfbKBKxQ";
-    const categValeur = "Kn1O3C6oUTXlgyWn5utY";
-    /*  const meToday = getResponsesByCategory(categLeader)?.map(
-      (res) => res?.response
-    );
-    const valeurs = getResponsesByCategory(categValeur)?.map(
-      (res) => res?.response
-    ); */
-    /*  const ES = getResponsesByCategory(categLeader)?.map((res) => res?.response);
-    const COM = [];
-    const CONFIANCE = [];
-    const CONFLIT = [];
-    const RESILIENCE = [];
-    const VOUSMEME = [];
-    const FUTUR = [];
-
-    console.log(" *** meToday ***", meToday); */
 
     const meToday = [9, 5, 8, 3, 4, 2]; // 6 valeurs
     const valeurs = [8, 5, 5, 4, 3, 2, 1, 6, 9, 9, 5, 7]; // 12 valeurs
@@ -169,7 +111,6 @@ const UseChartData = () => {
     const RESILIENCE = [4, 5, 3, 2, 8, 7, 7, 9, 5]; // 9 valeurs
     const VOUSMEME = [8, 4, 5, 3, 7, 8, 6, 6, 2, 9, 4, 5, 3, 6, 7, 9, 4, 5]; // 18 valeurs
     const FUTUR = [4, 5, 3, 6, 8, 7, 9]; // 7 valeurs
-
     /*   const volonté = 5; */
 
     const newPeriodData = [

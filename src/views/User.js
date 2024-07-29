@@ -120,6 +120,12 @@ const User = () => {
     }
   };
 
+  const handleUserClick = (userId) => {
+    if (userId) {
+      history.push(`/admin/results?userId=${userId}`);
+    }
+  };
+
   return (
     <Container>
       <Row className="my-4 align-items-center">
@@ -204,7 +210,10 @@ const User = () => {
                 <tbody>
                   {filteredUsers.map((user) => (
                     <tr key={user.id}>
-                      <td className="text-center align-middle">
+                      <td
+                        className="text-center align-middle"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleUserClick(user.id)}>
                         <span className="img-conent">
                           <img src={user_iwd} alt="user_iwd" className="icon" />
                         </span>

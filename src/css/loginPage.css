@@ -5,7 +5,7 @@
   text-align: center;
   height: 100%;
   width: 100%;
-}
+ }
 
 .sphere {
   width: 735px;
@@ -92,4 +92,27 @@ h1 {
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 400;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* Disable scroll */
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.min-vh-100 {
+  min-height: 100vh; /* Ensure the container takes full viewport height */
+}
+
+.flex-fill {
+  flex: 1;
+}
+ 
+
+.h-100 {
+  height: 100%; /* Utility class to set height to 100% */
 }

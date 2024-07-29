@@ -53,7 +53,7 @@ const dashboardRoutes = [
     layout: "/admin",
   },
   {
-    path: "/dashboard",
+    path: "/results",
     name: "Dashboard",
     icon: "nc-icon nc-chart-pie-35",
     component: Dashboard,
@@ -78,35 +78,21 @@ const dashboardRoutes = [
   },
   /* --- candidat --- */
   {
+    path: "/home",
+    name: "Résultats",
+    icon: icon_overview,
+    component: Dashboard,
+    layout: "/user",
+    display: false,
+  },
+  {
     path: "/test",
-    name: "Test",
+    name: "Questionnaire",
     icon: icon_question,
     component: Test,
     layout: "/user",
   },
-  {
-    path: "/home",
-    name: "Accueil",
-    icon: icon_overview,
-    component: Home,
-    layout: "/user",
-    display: false,
-  },
-  {
-    path: "/users",
-    name: "Utilisateurs",
-    icon: icon_user,
-    component: User,
-    layout: "/user",
-    display: false,
-  },
-  {
-    path: "/entreprise/users",
-    name: "Entreprise utilisateurs",
-    icon: icon_user,
-    component: EntrepriseUser,
-    layout: "/user",
-  },
+
   /*   {
     path: "/user",
     name: "User Profile",
