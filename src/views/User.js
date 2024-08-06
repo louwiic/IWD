@@ -1,11 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Table, Card, Form } from "react-bootstrap";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  Container,
+  Row,
+  Col,
+  Table,
+  Card,
+  Form,
+  Button,
+} from "react-bootstrap";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
 const logo = require("../assets/sphera.png");
 const user_iwd = require("../assets/img/user_iwd.png");
 import "../css/userPage.css";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+const remove_icon = require("../assets/remove.png");
 
 const cardBodyStyle = {
   display: "flex",
@@ -19,6 +36,8 @@ const User = () => {
   const [companies, setCompanies] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const history = useHistory();
 
   useEffect(() => {
@@ -126,6 +145,27 @@ const User = () => {
     }
   };
 
+  const handleDeleteUser = (userId) => {
+    setSelectedUser(userId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedUser) {
+      try {
+        await deleteDoc(doc(db, "users", selectedUser));
+        setUsers(users.filter((user) => user.id !== selectedUser));
+        setFilteredUsers(
+          filteredUsers.filter((user) => user.id !== selectedUser)
+        );
+        setShowDeleteModal(false);
+        setSelectedUser(null);
+      } catch (error) {
+        console.error("Error deleting user: ", error);
+      }
+    }
+  };
+
   return (
     <Container>
       <Row className="my-4 align-items-center">
@@ -205,6 +245,7 @@ const User = () => {
                     <th>Dernière sphère</th>
                     <th>Entreprise</th>
                     <th>Business unit</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,19 +269,42 @@ const User = () => {
                         {companies[user.company] || "Inconnu"}
                       </td>
                       <td>{user.businessUnit}</td>
+                      <td>
+                        <span
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="img-content"
+                          style={{
+                            cursor: "pointer",
+                            padding: "5px",
+                            borderRadius: "5px",
+                          }}>
+                          <img
+                            src={remove_icon}
+                            alt="remove_icon"
+                            className="icon"
+                          />
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <Card.Link href="#" style={{ textDecoration: "underline" }}>
-                  Voir plus
+                  Pagination ici ..
                 </Card.Link>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
+      <ConfirmDeleteModal
+        show={showDeleteModal}
+        handleClose={() => setShowDeleteModal(false)}
+        handleConfirm={confirmDelete}
+        title={"Supprimer définitivement cette utilisateur ?"}
+        companyName={""}
+      />
     </Container>
   );
 };

@@ -35,7 +35,7 @@ const PrivateRoute = ({ component: Component, requiredRole, ...rest }) => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Chargement...</div>;
   }
 
   return (

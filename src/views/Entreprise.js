@@ -22,6 +22,7 @@ import {
   collection,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import ConfirmDeleteModal from "components/ConfirmDeleteModal";
 
 const CustomSwitch = ({ companyId, isActive, showNotification }) => {
   const [isOn, setIsOn] = useState(isActive);
@@ -47,13 +48,11 @@ const CustomSwitch = ({ companyId, isActive, showNotification }) => {
   };
 
   return (
-    <>
-      <div className="switch-container">
-        <div className={`switch ${isOn ? "on" : "off"}`} onClick={toggleSwitch}>
-          <div className="switch-handle"></div>
-        </div>
+    <div className="switch-container">
+      <div className={`switch ${isOn ? "on" : "off"}`} onClick={toggleSwitch}>
+        <div className="switch-handle"></div>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -65,6 +64,8 @@ const Entreprise = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
   useEffect(() => {
     fetchCompanies();
@@ -141,11 +142,17 @@ const Entreprise = () => {
     setShowToast(true);
   };
 
-  const handleDelete = async (companyId) => {
+  const handleDelete = (company) => {
+    setSelectedCompany(company);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await deleteDoc(doc(db, "companies", companyId));
+      await deleteDoc(doc(db, "companies", selectedCompany.id));
       showNotification("Entreprise supprimée avec succès !", "success");
       fetchCompanies(); // Rafraîchir la liste des entreprises après suppression
+      setShowDeleteModal(false);
     } catch (error) {
       console.error(
         "Erreur lors de la suppression de l'entreprise :",
@@ -278,7 +285,7 @@ const Entreprise = () => {
                       <td className="bold-brown">{company.participants}</td>
                       <td>
                         <span
-                          onClick={() => handleDelete(company.id)}
+                          onClick={() => handleDelete(company)}
                           className="img-content"
                           style={{
                             cursor: "pointer",
@@ -296,7 +303,6 @@ const Entreprise = () => {
                   ))}
                 </tbody>
               </Table>
-              <Card.Link href="#">Voir plus</Card.Link>
             </Card.Body>
           </Card>
         </Col>
@@ -365,6 +371,12 @@ const Entreprise = () => {
           </Button>
         </div>
       </Form>
+      <ConfirmDeleteModal
+        show={showDeleteModal}
+        handleClose={() => setShowDeleteModal(false)}
+        handleConfirm={confirmDelete}
+        companyName={selectedCompany?.companyName}
+      />
     </Container>
   );
 };

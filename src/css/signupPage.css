@@ -27,6 +27,7 @@
  
 }
 
+
 .switch-container {
   display: flex;
   flex-direction: row; /* Align items in a row */
@@ -34,6 +35,32 @@
   gap: 10px; /* Space between the switch and the label */
   margin-top: 20px;
 }
+.switch-container {
+  display: flex;
+  align-items: center;
+}
+
+.switch-label {
+  margin-right: 10px; /* Adjust as needed */
+}
+
+.animated-pointer {
+  animation: zoomInOut 1s infinite alternate;
+  margin-left: 5px; 
+}
+
+@keyframes zoomInOut {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 
 .switch {
   width: 60px;

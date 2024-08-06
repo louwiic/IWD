@@ -26,44 +26,39 @@ function drawPointLabels(scale, labelCount) {
 
   const backdropColors = [
     ...Array(6).fill("rgba(150, 50, 226, 0.3)"),   // Vous aujourd'hui
-    ...Array(10).fill("rgba(135, 0, 0, 0.3)"),     // Vos valeurs
+    ...Array(12).fill("rgba(135, 0, 0, 0.3)"),     // Vos valeurs
     ...Array(9).fill("rgba(0, 38, 142, 0.2)"),     // Etat d'esprit
-    ...Array(7).fill("rgba(226, 50, 50, 0.2)"),    // Communication
+    ...Array(9).fill("rgba(226, 50, 50, 0.2)"),    // Communication
     ...Array(9).fill("rgba(226, 168, 50, 0.3)"),   // Confiance
-    ...Array(9).fill("rgba(226, 220, 50, 0.2)"),   // Conflit
-    ...Array(9).fill("rgba(168, 220, 50, 0.3)"),   // Résilience
-    ...Array(15).fill("rgba(50, 226, 185, 0.4)"),  // Vous-même
-    ...Array(6).fill("rgba(50, 220, 226, 0.2)"),   // Dans le futur
-    ...Array(6).fill("rgba(83, 109, 254, 0.2)"),   // Dans le futur
+    ...Array(10).fill("rgba(226, 220, 50, 0.2)"),   // Conflit
+    ...Array(10).fill("rgba(168, 220, 50, 0.3)"),   // Résilience
+    ...Array(16).fill("rgba(50, 226, 185, 0.4)"),  // Vous-même
+     ...Array(8).fill("rgba(83, 109, 254, 0.2)"),   // Dans le futur
   ];
 
-  // Calculate the center of the radar chart
   const centerX = scale.xCenter;
   const centerY = scale.yCenter;
-  const radius = scale.drawingArea; // Use the drawing area radius
-  const labelPadding = 40; // Adjust this value to control the padding
+  const radius = scale.drawingArea;
+  const labelPadding = 40;
 
   for (let i = 0; i < labelCount; i++) {
     const optsAtIndex = pointLabels.setContext(scale.getPointLabelContext(i));
     const plFont = toFont(optsAtIndex.font);
-    const angle = (Math.PI * 2 / labelCount) * i - Math.PI / 2; // Calculate the angle for each label
+    const angle = (Math.PI * 2 / labelCount) * i - Math.PI / 2;
 
-    // Calculate the position of the label with additional padding
     const labelX = centerX + Math.cos(angle) * (radius + labelPadding);
     const labelY = centerY + Math.sin(angle) * (radius + labelPadding);
 
     ctx.save();
     ctx.translate(labelX, labelY);
 
-    // Ensure all text is oriented correctly
     const angleDegrees = (angle * 180) / Math.PI;
     let textAlign = "center";
     let textBaseline = "middle";
     let rotationAngle = angle;
 
-    // Flip labels on the left side
     if (angleDegrees > 90 && angleDegrees < 270) {
-      rotationAngle += Math.PI; // Rotate 180 degrees for left-side labels
+      rotationAngle += Math.PI;
     }
 
     ctx.rotate(rotationAngle);
@@ -97,7 +92,6 @@ function drawPointLabels(scale, labelCount) {
         ctx.fillRect(backdropLeft, backdropTop, backdropWidth, backdropHeight);
       }
     }
-
     renderText(
       ctx,
       scale._pointLabels[i],
@@ -110,7 +104,6 @@ function drawPointLabels(scale, labelCount) {
         textBaseline,
       }
     );
-
     ctx.restore();
   }
 }
@@ -124,7 +117,7 @@ function drawGroupLabels(scale, groupLabels) {
     options: { pointLabels },
   } = scale;
 
-  const radius = drawingArea + 80; // Additional padding for group labels
+  const radius = drawingArea + 80;
   const angleStep = (Math.PI * 2) / scale._pointLabels.length;
   const segmentSize = Math.floor(scale._pointLabels.length / groupLabels.length);
 
@@ -180,7 +173,6 @@ function drawRadiusLine(scale, gridLineOpts, radius, labelCount, borderOpts, fil
 
   ctx.save();
 
-  // Apply segment colors for specific indexes
   if (fillStyle && index >= 0 && index < 9) {
     const previousRadius = scale.getDistanceFromCenterForValue(scale.ticks[index - 1]?.value || 0);
     ctx.fillStyle = fillStyle;
@@ -192,22 +184,19 @@ function drawRadiusLine(scale, gridLineOpts, radius, labelCount, borderOpts, fil
     ctx.fill();
   }
 
-  // Ensure boundary lines remain visible
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
   ctx.setLineDash(borderOpts.dash);
   ctx.lineDashOffset = borderOpts.dashOffset;
 
-  // Draw the boundary lines again to ensure visibility
   ctx.beginPath();
   pathRadiusLine(scale, radius, circular, labelCount);
   ctx.closePath();
   ctx.stroke();
 
-  // Color the 7th line in red
   if (index === 7) {
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = lineWidth * 3; // Épaisseur du trait doublée
     ctx.setLineDash(borderOpts.dash);
     ctx.lineDashOffset = borderOpts.dashOffset;
     ctx.beginPath();
@@ -222,10 +211,8 @@ function drawRadiusLine(scale, gridLineOpts, radius, labelCount, borderOpts, fil
 function pathRadiusLine(scale, radius, circular, labelCount) {
   const { ctx } = scale;
   if (circular) {
-    // Draw circular arcs between the points
     ctx.arc(scale.xCenter, scale.yCenter, radius, 0, TAU);
   } else {
-    // Draw straight lines connecting each index
     let pointPosition = scale.getPointPosition(0, radius);
     ctx.moveTo(pointPosition.x, pointPosition.y);
 
@@ -257,7 +244,6 @@ class CustomRadialLinearScale extends RadialLinearScale {
 
     let i, offset, position;
 
-    // Define segment colors
     const segmentColors = [
       '#607d8b', 
       '#78909c',  
@@ -272,7 +258,7 @@ class CustomRadialLinearScale extends RadialLinearScale {
     ];
 
     const groupLabels = [
-     /*  "Vous aujourd'hui", 'Vos valeurs', "Etat d'esprit", 'Communication', 'Confiance', 'Conflit', 'Résilience', 'Vous-même', 'Dans le futur' */
+      // "Vous aujourd'hui", 'Vos valeurs', "Etat d'esprit", 'Communication', 'Confiance', 'Conflit', 'Résilience', 'Vous-même', 'Dans le futur'
     ];
 
     if (opts.pointLabels.display) {
@@ -295,8 +281,8 @@ class CustomRadialLinearScale extends RadialLinearScale {
             offset,
             labelCount,
             optsAtIndexBorder,
-            segmentColors[index - 1], // Apply segment color
-            index // Pass the index to drawRadiusLine
+            segmentColors[index - 1],
+            index
           );
         }
       });

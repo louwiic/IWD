@@ -1,176 +1,312 @@
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { useCallback, useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
-import { useLocation } from "react-router-dom";
-
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
+import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 
 const UseChartData = () => {
   const [chartData, setChartData] = useState(null);
-  const query = useQuery();
-  const userId = query.get("userId");
+  const [categoriesData, setCategoriesData] = useState([]);
+  const [date, setDate] = useState("2024-08-01");
+  const [userId, setUserId] = useState(null);
+  const [LeaderShip, setLeaderShip] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [testData, setTestData] = useState(null);
 
-  const fetchData = async () => {
-    const labels = [
-      // "Vous aujourd'hui"
-      "Leader",
-      "Qualités",
-      "Efforts",
-      "Potentiel",
-      "Satisf-Pro",
-      "Dev-Pro",
-      // "Vos valeurs"
-      "Amitié",
-      "Honnêteté",
-      "Créativité",
-      "Apprentissa",
-      "Plaisir",
-      "Responsabil",
-      "Organis",
-      "Réalisation",
-      "Reconnaiss",
-      "Richesse",
-      "Sécurité",
-      "Tranqui",
-      // "Etat d'esprit"
-      "Passion",
-      "Action",
-      "Atteindre",
-      "Risque",
-      "Réussir",
-      "Complexité",
-      "Impact",
-      "Emotion",
-      "Discipline",
-      // "Communication"
-      "Ecoute",
-      "Preparer",
-      "Comprendre",
-      "Comm-Details",
-      "Feedback",
-      "Ressenti",
-      "Comm-Ecrite",
-      "Stress-Mgt",
-      // "Confiance"
-      "Expri-Conf",
-      "Démo-Conf",
-      "Information",
-      "Délég-Autor",
-      "Maint-Limit",
-      "Tenir-Parol",
-      "Admet-Err",
-      "Appliq-Comp",
-      "Conf-Autres",
-      // "Conflit"
-      "Vengeance",
-      "Repon-Contruc",
-      "Partg-Emoti",
-      "Innov-Creat",
-      "Rôle",
-      "Opportunité",
-      "Optimiste",
-      "Humour",
-      "Quali-Soutien",
-      // "Résilience"
-      "Prendr-soin",
-      "Collaboratio",
-      "Degre",
-      "Rebondir",
-      "Adapt-Chang",
-      "Orig-Stress",
-      "Agir-Authta",
-      "Defis-Perso",
-      "Atouts",
-      // "Vous-même"
-      "Adap-Tecno",
-      "Complétude",
-      "Vie Privée",
-      "Cohérence",
-      "Souhai-Être",
-      "Ruminer",
-      "Adversité",
-      "Negativité",
-      "Image-Projt",
-      "Crainte",
-      "Epanouiss",
-      "Paix-Inter",
-      "Regard-Soi",
-      "Spirituel",
-      "Mental",
-      "Physique",
-      "Amélior-Prata",
-      "Incertitude",
-      // "Dans le futur"
-      "Contribuer",
-      "Curiosité",
-      "Mgt-Ambig",
-      "Rem-en-quest",
-      "Avenir-Clair",
-      "Volonté",
-    ];
-    /* 
-    const testDocRef = doc(collection(db, "Tests"), userId);
-    const testDoc = await getDoc(testDocRef);
+  const location = useLocation();
+  const userIdStorage = localStorage.getItem("userIdStorage");
+  const role = localStorage.getItem("role");
 
-    if (!testDoc.exists()) {
-      console.error("No such document!");
-      return;
+  useEffect(() => {
+    if (role === "candidate") {
+      setUserId(userIdStorage);
     }
+  }, [role]);
 
-    const testData = testDoc.data();
-    const categoriesData = testData.categories || [];
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const idUser = params.get("userId");
+    if (idUser) {
+      setUserId(idUser);
+    }
+  }, [location]);
 
-    const questionsSnapshot = await getDocs(collection(db, "questions"));
-    const categoriesMapping = {};
-    questionsSnapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      categoriesMapping[data.id] = data.category;
-    });
+  const labelVA = [
+    "Leader",
+    "Qualités",
+    "Efforts",
+    "Potentiel",
+    "Satisf-Pro",
+    "Dev-Pro",
+  ];
+  const labels = [
+    // "Vous aujourd'hui"
+    ...labelVA,
+    // "Vos valeurs"
+    "Indépendance",
+    "Défi",
+    "Créativité",
+    "Instruction",
+    "Plaisir",
+    "Responsabil",
+    "Cooperat",
+    "Accomplis",
+    "Reconnaiss",
+    "Richesse",
+    "Courage",
+    "Tranqui",
+    // "Etat d'esprit"
+    "Passion",
+    "Action",
+    "Atteindre",
+    "Risque",
+    "Réussir",
+    "Complexité",
+    "Impact",
+    "Emotion",
+    "Discipline",
+    // "Communication"
+    "Comm-Oral",
+    "Écoute",
+    "Préparer",
+    "Comprendre",
+    "Comm-Details",
+    "Feedback",
+    "Ressenti",
+    "Comm-Écrite",
+    "Stress-mgt",
+    // "Confiance"
+    "Expri-Conf",
+    "Démo-Conf",
+    "Information",
+    "Délég-Autor",
+    "Maint-Limit",
+    "Tenir-Parol",
+    "Admet-Err",
+    "Appliq-Comp",
+    "Conf-Autres",
+    // "Conflit"
+    "Confronté",
+    "Humour",
+    "Optimiste",
+    "Opportunité",
+    "Rôle",
+    "Innov-Creat",
+    "Partg-Emoti",
+    "Repon-Contruc",
+    "Vengeance",
+    "Solui-Satisf",
+    // "Résilience"
+    "Atouts",
+    "Defis-Perso",
+    "Agir-Authta",
+    "Prendr-soin",
+    "Orig-Stress",
+    "Adapt-Chang",
+    "Rebondir",
+    "Degre",
+    "Collaboratio",
+    "Quali-Soutien",
+    // "Vous-même"
+    "Physique",
+    "Mental",
+    "Spirituel",
+    "Regard-Soi",
+    "Paix-Inter",
+    "Epanouiss",
+    "Crainte",
+    "Image-Projt",
+    "Negativité",
+    "Adversité",
+    "Ruminer",
+    "Souhai-Être",
+    "Cohérence",
+    "Vie Privée",
+    "Complétude",
+    "Adap-Tecno",
+    // "Dans le futur"
+    "Volonté",
+    "Avenir-Clair",
+    "Rem-en-quest",
+    "Mgt-Ambig",
+    "Curiosité",
+    "Contribuer",
+    "Amélior-Pratq",
+    "Incertitude",
+  ];
 
-    function getResponsesByCategory(categoryId) {
-      // Filtrer les données par category ID
-      const categoryData = categoriesData.find(
-        (item) => item.category === categoryId
-      );
-      if (categoryData) {
-        return categoryData.responses;
+  const formatDate = (dateString) => {
+    return dateString.split("T")[0]; // Extract the date part "YYYY-MM-DD"
+  };
+
+  const formatDateToISOString = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString();
+  };
+
+  const getUserTestsByUserId = async (userId) => {
+    //role === "candidate"
+    try {
+      const userTestsRef = collection(db, "UserTests");
+      let q = null;
+      if (role === "candidate") {
+        q = query(
+          userTestsRef,
+          where("userId", "==", userId),
+          where("sharedState", "==", true)
+        );
       } else {
+        q = query(userTestsRef, where("userId", "==", userId));
+      }
+
+      const querySnapshot = await getDocs(q);
+
+      const userTests = querySnapshot.docs?.slice(0, 2).map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTestData(userTests);
+
+      return userTests;
+    } catch (error) {
+      console.error("Error fetching UserTests: ", error);
+      return [];
+    }
+  };
+
+  const getCategoriesByTestId = async (testId) => {
+    try {
+      const testDocRef = doc(db, "Tests", testId);
+      const testDoc = await getDoc(testDocRef);
+      if (testDoc.exists()) {
+        const testData = testDoc.data();
+        return testData.categories;
+      } else {
+        console.log(`Test with ID ${testId} not found`);
         return [];
       }
+    } catch (error) {
+      console.error("Error fetching test categories: ", error);
+      return [];
     }
- */
-    //Vous, en tant que leader
-    const categLeader = "4jx2EMzabASVxfbKBKxQ";
-    const categValeur = "Kn1O3C6oUTXlgyWn5utY";
-    /*  const meToday = getResponsesByCategory(categLeader)?.map(
-      (res) => res?.response
-    );
-    const valeurs = getResponsesByCategory(categValeur)?.map(
-      (res) => res?.response
-    ); */
-    /*  const ES = getResponsesByCategory(categLeader)?.map((res) => res?.response);
-    const COM = [];
-    const CONFIANCE = [];
-    const CONFLIT = [];
-    const RESILIENCE = [];
-    const VOUSMEME = [];
-    const FUTUR = [];
+  };
 
-    console.log(" *** meToday ***", meToday); */
+  const getUserTestsAndCategories = async (userId) => {
+    try {
+      setLoading(true);
+      const userTests = await getUserTestsByUserId(userId);
+      const testsWithCategories = await Promise.all(
+        userTests.map(async (userTest) => {
+          const categories = await getCategoriesByTestId(userTest.testId);
+          return {
+            ...userTest,
+            categories,
+          };
+        })
+      );
+      setLoading(false);
+      return testsWithCategories;
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const meToday = [9, 5, 8, 3, 4, 2]; // 6 valeurs
-    const valeurs = [8, 5, 5, 4, 3, 2, 1, 6, 9, 9, 5, 7]; // 12 valeurs
-    const ES = [6, 6, 7, 4, 7, 5, 1, 6, 9]; // 9 valeurs
-    const COM = [4, 5, 3, 0, 8, 7, 7, 9]; // 8 valeurs
-    const CONFIANCE = [4, 5, 3, 2, 8, 7, 7, 9, 7]; // 9 valeurs
-    const CONFLIT = [0, 6, 7, 4, 7, 5, 1, 6, 9]; // 9 valeurs
-    const RESILIENCE = [4, 5, 3, 2, 8, 7, 7, 9, 5]; // 9 valeurs
-    const VOUSMEME = [8, 4, 5, 3, 7, 8, 6, 6, 2, 9, 4, 5, 3, 6, 7, 9, 4, 5]; // 18 valeurs
-    const FUTUR = [4, 5, 3, 6, 8, 7, 9]; // 7 valeurs
+  const fetchData = async () => {
+    let combinedData = [];
 
-    /*   const volonté = 5; */
+    const result = await getUserTestsAndCategories(userId);
+    if (result?.length === 0) return;
+    const getResponsesByCategoryIdAndDate = (dataObj, categoryId, testDate) => {
+      if (!!!dataObj) return;
+      const testDateFormatted = formatDate(testDate);
+      const result = {};
+
+      // Trouve la catégorie spécifique par categoryId
+      const category = dataObj.categories.find(
+        (cat) => cat.category === categoryId
+      );
+      if (category) {
+        // Extrait les réponses de la catégorie
+        result.responses = category.responses.map(
+          (response) => response.response
+        );
+        result.testId = dataObj.testId;
+        result.userId = dataObj.userId;
+        result.testDate = dataObj.testDate;
+        result.sharedState = dataObj.sharedState;
+      }
+
+      return result;
+    };
+    const testDate = "2024-08-01";
+
+    //Votre Leadership Aujourd’hui;
+    const VOTRELEADERSHIP = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "4jx2EMzabASVxfbKBKxQ",
+      testDate
+    )?.responses;
+
+    //Vos valeurs
+    const VALEURS = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "Kn1O3C6oUTXlgyWn5utY",
+      testDate
+    )?.responses;
+
+    // Etat d'esprit
+    const ES = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "M1zQrDhFj0LYbyYVCs1H",
+      testDate
+    )?.responses;
+
+    //Communication
+    const COM = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "u18ckyczskXpvLmQ9wCV",
+      testDate
+    )?.responses;
+
+    //confiance
+    const CONFIANCE = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "yz0kVA4XJ1Ivd1eFmIHZ",
+      testDate
+    )?.responses;
+    //Conflit
+    const CONFLIT = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "rYbeaMIQuKar27QYsXVG",
+      testDate
+    )?.responses;
+    //résilience
+    const RESILIENCE = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "yyZWreYDX93rPRnjIkwh",
+      testDate
+    )?.responses;
+
+    //Vous-même
+    const VOUSMEME = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "wClgeAd1l2hqzfw5l4aV",
+      testDate
+    )?.responses;
+
+    //
+    const FUTUR = getResponsesByCategoryIdAndDate(
+      result?.[0],
+      "PC6KaYF98rIsfNwH2FTC",
+      testDate
+    )?.responses;
 
     const newPeriodData = [
       7, 6, 5, 4, 8, 9, 2, 7, 5, 6, 3, 8, 9, 4, 5, 3, 6, 8, 7, 5, 4, 3, 8, 7, 6,
@@ -180,17 +316,16 @@ const UseChartData = () => {
     ];
 
     // Combine all datasets into one continuous array
-    const combinedData = [
-      ...meToday,
-      ...valeurs,
+    combinedData = [
+      ...VOTRELEADERSHIP,
+      ...VALEURS,
       ...ES,
-      ...CONFLIT,
       ...COM,
       ...CONFIANCE,
+      ...CONFLIT,
       ...RESILIENCE,
       ...VOUSMEME,
       ...FUTUR,
-      /*       volonté, */
     ];
 
     // Ensure the combined data has the correct length
@@ -218,8 +353,9 @@ const UseChartData = () => {
           pointHoverBackgroundColor: "#424242",
           pointHoverBorderColor: "#424242",
           data: fullData,
+          labelVA,
         },
-        {
+        /*   {
           label: "Vous 2023",
           backgroundColor: "rgba(50, 150, 226, 0.1)",
           borderColor: "#0d47a1",
@@ -228,7 +364,7 @@ const UseChartData = () => {
           pointHoverBackgroundColor: "#1E90FF",
           pointHoverBorderColor: "#1E90FF",
           data: fullNewPeriodData,
-        },
+        }, */
       ],
     };
 
@@ -237,9 +373,9 @@ const UseChartData = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [userId, date]);
 
-  return { chartData };
+  return { chartData, loading, testData };
 };
 
 export default UseChartData;
