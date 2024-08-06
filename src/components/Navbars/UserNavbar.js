@@ -37,7 +37,7 @@ const UserNavbar = ({}) => {
     <Navbar style={styles.customNavbar} expand="lg">
       <Container fluid>
         <img
-          src={require("../../assets/img/logo_lts_user.png")}
+          src={require("../../assets/img/logo_lts.png")}
           alt="Logo"
           className="logo"
           style={{ height: 80, width: "auto", marginRight: "40px" }}

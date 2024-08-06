@@ -38,6 +38,11 @@ const CustomSwitch = ({
           {"Je fais partie d’une entreprise"}
         </span>
       </div>
+      <div className="mt-2">
+        <i
+          className="fa fa-hand-pointer-o animated-pointer"
+          aria-hidden="true"></i>
+      </div>
       <div style={{ marginTop: 30 }}>
         {isOn && (
           <>
@@ -226,19 +231,18 @@ const SignupPage = () => {
       className="d-flex scrollable-form-container"
       style={gradientStyle}>
       <Row className="w-100 d-flex align-items-center justify-content-center flex-fill">
+        <div
+          variant="secondary"
+          onClick={handleBack}
+          className="mb-3"
+          style={{ cursor: "pointer", color: "#fff" }}>
+          &larr; Retour
+        </div>
         <Col className="d-flex align-items-center justify-content-center">
           <Card
             className="w-100 p-4"
             style={{ maxWidth: "500px", borderRadius: "10px" }}>
             <Card.Body>
-              <div
-                variant="secondary"
-                onClick={handleBack}
-                className="mb-3"
-                style={{ cursor: "pointer" }}>
-                <i className="fa fa-hand-pointer-o" aria-hidden="true"></i>{" "}
-                &larr; Retour
-              </div>
               <h2 className="mb-4 text-center info-text">Créer un compte</h2>
               <p className="text-center subtext">
                 Créer votre compte personnel à l’aide d’un login et d’un mot de
@@ -372,7 +376,10 @@ const SignupPage = () => {
                     </Form.Control.Feedback>
                   </InputGroup>
                 </Form.Group>
-
+                <p className="subtext mt-3">
+                  Assurez-vous de sauvegarder vos identifiants pour pouvoir
+                  accéder à vos résultats à tout moment
+                </p>
                 <Button
                   className="btn-fill mt-3 btn-primary-border"
                   type="submit"

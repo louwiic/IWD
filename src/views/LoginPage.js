@@ -30,6 +30,7 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
       const user = userCredential.user;
       const token = await user.getIdToken();
       localStorage.setItem("authToken", token);
+
       const userDoc = await getDoc(doc(db, "users", user.uid));
 
       setToastVariant("success");
@@ -37,6 +38,8 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
       setShowToast(true);
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        localStorage.setItem("userIdStorage", user.uid);
+        localStorage.setItem("role", userData.role);
         if (userData.role !== "admin") {
           history.push("/user/test/");
         } else {

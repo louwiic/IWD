@@ -31,7 +31,7 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
   }, [user]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Chargement...</div>;
   }
 
   return (

@@ -48,14 +48,16 @@ const Questions = () => {
   };
 
   const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
+    const selectedId = e.target.value;
+    setSelectedCategory(selectedId);
+    setResponses({});
   };
 
   const handleSave = async () => {
     if (!selectedCategory) return;
 
     const currentCategory = categories.find(
-      (cat) => cat.categorie === selectedCategory
+      (cat) => cat.id === selectedCategory
     );
     const updatedQuestions = currentCategory.questions.map(
       (question, index) => {
@@ -89,9 +91,7 @@ const Questions = () => {
     return question.charAt(0).toUpperCase() + question.slice(1).toLowerCase();
   };
 
-  const currentCategory = categories.find(
-    (cat) => cat.categorie === selectedCategory
-  );
+  const currentCategory = categories.find((cat) => cat.id === selectedCategory);
 
   return (
     <Container>
@@ -133,7 +133,6 @@ const Questions = () => {
               Attention vous ne pouvez pas ajouter plus de 60 questions max.
             </p>
           </Col>
-
           <Col md="12">
             <Form.Group controlId="categorySelect card">
               <Form.Control
@@ -142,7 +141,7 @@ const Questions = () => {
                 value={selectedCategory}>
                 <option value="">Sélectionnez une catégorie</option>
                 {categories.map((category, index) => (
-                  <option key={index} value={category.categorie}>
+                  <option key={index} value={category.id}>
                     {category.categorie}
                   </option>
                 ))}
@@ -175,7 +174,7 @@ const Questions = () => {
                         </span>
                         <Form.Control
                           type="text"
-                          defaultValue={q}
+                          value={q}
                           onChange={(e) =>
                             handleResponseChange(index, e.target.value)
                           }
@@ -190,6 +189,7 @@ const Questions = () => {
                         </span>
                       </Form.Group>
                     ))}
+
                     <div className="d-flex justify-content-end mt-4">
                       <Button variant="primary" onClick={handleSave}>
                         Enregistrer

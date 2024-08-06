@@ -15,7 +15,6 @@ import {
   getDocs,
   doc,
   setDoc,
-  getDoc,
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
@@ -29,6 +28,7 @@ const Test = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [testDocId, setTestDocId] = useState(null);
 
   const fetchQuestions = async () => {
     try {
@@ -64,7 +64,75 @@ const Test = () => {
     }));
   };
 
-  const handleNext = async () => {
+  const handleBack = () => {
+    if (currentCategoryIndex > 0) {
+      setCurrentCategoryIndex(currentCategoryIndex - 1);
+    }
+  };
+
+  const handleRandomize = () => {
+    const currentQuestions = categories[currentCategoryIndex]?.questions || [];
+    const randomResponses = {};
+    currentQuestions.forEach((question) => {
+      randomResponses[question] = Math.floor(Math.random() * 6) + 4;
+    });
+    setResponses(randomResponses);
+  };
+
+  const saveResponses = async () => {
+    const currentCategory = categories[currentCategoryIndex];
+    const testRef = collection(db, "Tests");
+
+    // Créer un document unique pour chaque test si ce n'est pas déjà fait
+    if (!testDocId) {
+      const newTestDocRef = doc(testRef);
+      setTestDocId(newTestDocRef.id);
+      const categoryResponses = currentCategory.questions.map((question) => ({
+        question,
+        response: responses[question],
+      }));
+
+      const newCategoryData = {
+        category: currentCategory.id,
+        responses: categoryResponses,
+      };
+
+      await setDoc(newTestDocRef, {
+        userId: currentUser.uid,
+        sharedState: false,
+        testDate: new Date().toISOString(),
+        categories: [newCategoryData],
+      });
+    } else {
+      const testDocRef = doc(testRef, testDocId);
+      const categoryResponses = currentCategory.questions.map((question) => ({
+        question,
+        response: responses[question],
+      }));
+
+      const newCategoryData = {
+        category: currentCategory.id,
+        responses: categoryResponses,
+      };
+
+      await updateDoc(testDocRef, {
+        categories: arrayUnion(newCategoryData),
+      });
+
+      // Si c'est la dernière catégorie, créer le document UserTests
+      if (currentCategoryIndex === categories.length - 1) {
+        const userTestRef = doc(collection(db, "UserTests"), testDocId);
+        await setDoc(userTestRef, {
+          userId: currentUser.uid,
+          sharedState: false,
+          testDate: new Date().toISOString(),
+          testId: testDocId, // Ajouter l'ID du test ici
+        });
+      }
+    }
+  };
+
+  const handleNext = () => {
     const currentQuestions = categories[currentCategoryIndex]?.questions || [];
     const allAnswered = currentQuestions.every(
       (q) => responses[q] && responses[q] >= 1 && responses[q] <= 9
@@ -76,53 +144,13 @@ const Test = () => {
     }
 
     setShowAlert(false);
-
-    await saveResponses();
+    saveResponses();
 
     if (currentCategoryIndex < categories.length - 1) {
       setCurrentCategoryIndex(currentCategoryIndex + 1);
       setResponses({}); // Reset responses when moving to the next page
     } else {
-      // Show success modal
-      setShowSuccessModal(true);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentCategoryIndex > 0) {
-      setCurrentCategoryIndex(currentCategoryIndex - 1);
-    }
-  };
-
-  const saveResponses = async () => {
-    const currentCategory = categories[currentCategoryIndex];
-    const testRef = collection(db, "Tests");
-    const testDocRef = doc(testRef, currentUser.uid);
-
-    const categoryResponses = currentCategory.questions.map((question) => ({
-      question,
-      response: responses[question],
-    }));
-
-    const newCategoryData = {
-      category: currentCategory.id,
-      responses: categoryResponses,
-    };
-
-    // Vérifiez si le document Tests existe pour l'utilisateur
-    const testDoc = await getDoc(testDocRef);
-
-    if (!testDoc.exists()) {
-      await setDoc(testDocRef, {
-        userId: currentUser.uid,
-        sharedState: false,
-        testDate: new Date().toISOString(),
-        categories: [newCategoryData],
-      });
-    } else {
-      await updateDoc(testDocRef, {
-        categories: arrayUnion(newCategoryData),
-      });
+      setShowSuccessModal(true); // Show success modal
     }
   };
 
@@ -145,6 +173,9 @@ const Test = () => {
               </div>
               <Card.Title as="h4">
                 Page {currentCategoryIndex + 1} de {categories.length}
+              </Card.Title>
+              <Card.Title as="h4">
+                {currentCategory?.categorie || ""}
               </Card.Title>
               <div
                 style={{
@@ -191,6 +222,7 @@ const Test = () => {
                             className="custom-radio"
                             name={`question-${index}`}
                             value={i + 1}
+                            checked={responses[q] === i + 1}
                             onChange={() => handleResponseChange(q, i + 1)}
                           />
                         </span>
@@ -216,6 +248,12 @@ const Test = () => {
                   {currentCategoryIndex === categories.length - 1
                     ? "Terminer"
                     : "Suivant"}
+                </Button>
+                <Button
+                  variant="info"
+                  onClick={handleRandomize}
+                  className="ml-2">
+                  Randomize
                 </Button>
               </div>
             </Card.Footer>
