@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import ChartistGraph from "react-chartist";
-// react-bootstrap components
 import {
   Badge,
   Button,
@@ -30,24 +28,41 @@ import UseChartData2 from "data/dataSet2";
 import CustomRadarController from "components/CustomRadarController";
 import CustomRadialLinearScale from "components/CustomRadialLinearScale";
 import { useLocation } from "react-router-dom/cjs/react-router-dom";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import { useReactToPrint } from "react-to-print";
 const logo = require("../assets/sphera.png");
 const share = require("../assets/share.png");
 const imprim = require("../assets/imprim.png");
+import "./Dashboard.css";
 
-var width = 300;
-var height = 300;
 ChartJS.register(LineElement, PointElement, Filler, Tooltip, Legend);
 ChartJS.register(CustomRadarController, CustomRadialLinearScale);
+const RadarLabel = ({ top, left, right, bottom, labelText }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: top,
+      left: left,
+      right: right,
+      bottom: bottom,
+      fontWeight: "bold",
+      fontSize: "14px",
+      padding: "4px",
+      borderRadius: "4px",
+      whiteSpace: "nowrap",
+      textAlign: "center",
+      color: "#000",
+    }}>
+    {labelText}
+  </div>
+);
 
-function Dashboard() {
+const DashboardForward = React.forwardRef((props, ref) => {
+  const {
+    handlePrint, // Ajout de la prop handlePrint
+  } = props;
+
   const chartRef = useRef();
   const { chartData2 } = UseChartData2();
   const location = useLocation();
@@ -57,7 +72,8 @@ function Dashboard() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
   const [shared, setShared] = useState(false);
-  const { chartData, loading, testData } = UseChartData();
+  const [selectedDate, setSelectedDate] = useState(null);
+  const { chartData, loading, testData, setDate, testDates } = UseChartData();
   const role = localStorage.getItem("role");
   const userIdStorage = localStorage.getItem("userIdStorage");
 
@@ -92,17 +108,22 @@ function Dashboard() {
     }
   }, [location]);
 
-  const bg = [
-    ...Array(6).fill("rgba(150, 50, 226, 0.3)"),
-    ...Array(12).fill("rgba(135, 0, 0, 0.3)"),
-    ...Array(9).fill("rgba(0, 38, 142,0.2)"),
-    ...Array(8).fill("rgba(226, 50, 50,0.2)"),
-    ...Array(9).fill("rgba(226, 168, 50,0.3)"),
-    ...Array(9).fill("rgba(226, 220, 50,0.2)"),
-    ...Array(9).fill("rgba(168, 220, 50,0.3)"),
-    ...Array(16).fill("rgba(50, 226, 185,0.4)"),
-    ...Array(7).fill("rgba(50, 220, 226,0.2)"),
-  ];
+  useEffect(() => {
+    if (testData?.length > 0 && !selectedDate) {
+      setSelectedDate(testData[0]?.testDate);
+      setDate(testData[0]?.testDate);
+    }
+  }, [testData]);
+
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+    setSelectedDate(newDate);
+    setDate(newDate);
+  };
+
+  const filteredChartData = testData?.find(
+    (test) => test.testDate === selectedDate
+  );
 
   const createLabelFunction = (data) => {
     return function (context) {
@@ -110,7 +131,7 @@ function Dashboard() {
       const dataIndex = context?.dataIndex;
       label += context?.raw + " : ";
 
-      const item = data.find((d) => d.label === context.label);
+      const item = data?.find((d) => d.label === context.label);
       if (item) {
         label += item.text;
       }
@@ -118,23 +139,6 @@ function Dashboard() {
       return label;
     };
   };
-
-  // Exemple d'utilisation
-  const data = [
-    {
-      label: "Apprentissa",
-      text: "La façon dont vous exploitez votre potentiel de leader",
-    },
-    {
-      label: "Amitié",
-      text: "La façon dont vous exploitez votre potentiel de leader",
-    },
-    {
-      label: "Courage",
-      text: "La façon dont vous exploitez votre potentiel de leader",
-    },
-    // Ajoutez d'autres objets {label, text} ici
-  ];
 
   const options = {
     scales: {
@@ -146,10 +150,8 @@ function Dashboard() {
         ticks: {
           display: false,
         },
-
         angleLines: {
           display: true,
-          /* borderDash: [11, 10], */
           borderDashOffset: 5,
           lineWidth: 1,
         },
@@ -158,19 +160,16 @@ function Dashboard() {
             borderWidth: 3,
           },
         },
-
         gridLines: {
           color: ["red", "orange"],
         },
         pointLabels: {
           padding: 10,
           font: {
-            //family: "Open Sans",
             size: 10,
             weight: "600",
           },
           color: "#37474f",
-          //backdropColor: bg,
           backdropPadding: 2,
           borderRadius: 4,
         },
@@ -192,13 +191,17 @@ function Dashboard() {
       legend: {
         display: true,
         position: "left",
+        labels: {
+          padding: 20, // Ajoute un padding de 20 pixels autour des éléments de la légende
+          usePointStyle: true, // Utiliser les styles de point dans la légende
+        },
       },
       area: {
         backgroundColor: "rgba(255, 0, 0, 0.1)",
       },
       tooltip: {
         callbacks: {
-          label: createLabelFunction(data),
+          label: createLabelFunction(filteredChartData),
         },
         titleFont: {
           size: 16,
@@ -210,7 +213,7 @@ function Dashboard() {
     },
   };
 
-  if (loading || (loadingUser && !!!userInfos)) {
+  if (loading || loadingUser) {
     return (
       <Container
         fluid
@@ -220,23 +223,6 @@ function Dashboard() {
           justifyContent: "center",
         }}>
         <span>Chargement...</span>
-      </Container>
-    );
-  }
-
-  if (!chartData) {
-    return (
-      <Container
-        fluid
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
-        <span>
-          {userInfos?.lastName} {userInfos?.firstName} n'a pas encore passé de
-          test ou vos tests n'ont pas été partagés
-        </span>
       </Container>
     );
   }
@@ -256,7 +242,7 @@ function Dashboard() {
   };
 
   return (
-    <>
+    <div className="print-container" ref={ref}>
       <Container fluid>
         {role === "admin" && (
           <div
@@ -318,6 +304,7 @@ function Dashboard() {
             </div>
           )}
           <Button
+            onClick={handlePrint}
             variant="secondary"
             style={{
               borderRadius: 15,
@@ -330,6 +317,20 @@ function Dashboard() {
             />
           </Button>
         </Col>
+
+        <Col md={12} style={{ marginBottom: 20 }}>
+          <Form.Select
+            aria-label="Sélectionnez la date du test"
+            onChange={handleDateChange}
+            value={selectedDate}>
+            {testDates?.map((date, index) => (
+              <option key={date} value={date}>
+                {new Date(date).toLocaleDateString()}
+              </option>
+            ))}
+          </Form.Select>
+        </Col>
+
         <Row>
           <Col md="12">
             <Card style={{ borderRadius: "4px" }}>
@@ -337,38 +338,65 @@ function Dashboard() {
                 <div
                   style={{
                     position: "relative",
-                    height: 920,
-                    width: 1024,
+                    width: 924,
+                    height: 1080,
+                    paddingTop: 120,
                   }}>
-                  {/*  <div
-                    style={{
-                      position: "absolute",
-                      top: 80,
-                      left: 220,
-                      height: 40,
-                      width: 40,
-                      backgroundColor: "pink",
-                    }}></div>
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 10,
-                      left: 400,
-                      height: 40,
-                      width: 40,
-                      backgroundColor: "pink",
-                    }}></div>
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 10,
-                      right: 400,
-                      height: 40,
-                      width: 40,
-                      backgroundColor: "pink",
-                    }}></div> */}
-
-                  <Chart type="radar" options={options} data={chartData} />
+                  {!chartData || !filteredChartData ? (
+                    <span>
+                      {userInfos?.lastName} {userInfos?.firstName} n'a pas
+                      encore passé de test ou vos tests n'ont pas été partagés
+                    </span>
+                  ) : (
+                    <div>
+                      <Chart
+                        type="radar"
+                        options={options}
+                        data={
+                          filteredChartData
+                            ? chartData
+                            : { labels: [], datasets: [] }
+                        }
+                      />
+                    </div>
+                  )}
+                  <RadarLabel top="340px" left="20px" labelText="Vous-même" />
+                  <RadarLabel
+                    top="130px"
+                    left="320px"
+                    labelText="Dans le futur"
+                  />
+                  <RadarLabel
+                    top="120px"
+                    right="230px"
+                    labelText="Vous aujourd'hui"
+                  />
+                  <RadarLabel
+                    top="300px"
+                    right="-60px"
+                    labelText="Vos valeurs"
+                  />
+                  <RadarLabel
+                    bottom="410px"
+                    right="-100px"
+                    labelText="Etat d'esprit"
+                  />
+                  <RadarLabel
+                    bottom="160px"
+                    right="-70px"
+                    labelText="Communication"
+                  />
+                  <RadarLabel
+                    bottom="300px"
+                    left="30px"
+                    labelText="Résilience"
+                  />
+                  <RadarLabel
+                    bottom="50px"
+                    right="150px"
+                    labelText="Confiance"
+                  />
+                  <RadarLabel bottom="60px" left="280px" labelText="Conflit" />
                 </div>
               </Card.Body>
             </Card>
@@ -391,8 +419,22 @@ function Dashboard() {
           <Toast.Body>{toastMessage}</Toast.Body>
         </Toast>
       </Container>
-    </>
+    </div>
   );
-}
+});
+
+const Dashboard = () => {
+  const componentRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
+
+  return (
+    <div>
+      <DashboardForward ref={componentRef} handlePrint={handlePrint} />
+    </div>
+  );
+};
 
 export default Dashboard;

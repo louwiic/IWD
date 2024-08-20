@@ -1,0 +1,8 @@
+@media print {
+  body {
+    visibility: hidden;
+  }
+  .print-container {
+    visibility: visible;
+  }
+}

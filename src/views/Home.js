@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Table, Card, Form } from "react-bootstrap";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
 const logo = require("../assets/sphera.png");
@@ -21,44 +28,80 @@ const Dashboard = () => {
   const [companies, setCompanies] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [nbShared, setNbShared] = useState(0);
+  const [userPassedTest, setUserPassedTest] = useState(0);
+  const [todayTestUser, setTodayTestUser] = useState(null);
   const history = useHistory();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const usersData = querySnapshot.docs.slice(0, 5).map((doc) => ({
+        // Étape 1: Récupérer tous les utilisateurs
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const usersData = usersSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setUsers(usersData);
-        setFilteredUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching users: ", error);
-      }
-    };
 
-    const fetchCompanies = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "companies"));
+        // Étape 2: Récupérer toutes les entreprises
+        const companiesSnapshot = await getDocs(collection(db, "companies"));
         const companiesData = {};
-        querySnapshot.docs.forEach((doc) => {
+        companiesSnapshot.docs.forEach((doc) => {
           companiesData[doc.id] = doc.data().companyName;
         });
+
+        // Étape 3: Récupérer tous les `UserTests` partagés
+        const sharedTestsQuery = query(
+          collection(db, "UserTests"),
+          where("sharedState", "==", true)
+        );
+        const sharedTestsSnapshot = await getDocs(sharedTestsQuery);
+        const sharedTestsCount = sharedTestsSnapshot.size;
+
+        // Étape 4: Compter le nombre d'utilisateurs ayant passé un test
+        const userIdsInTests = sharedTestsSnapshot.docs.map(
+          (doc) => doc.data().userId
+        );
+        const usersWhoPassedTests = usersData.filter(
+          (user) => !userIdsInTests.includes(user.id)
+        ).length;
+
+        // Étape 5: Récupérer le test le plus récent d'aujourd'hui
+        const today = new Date().toISOString().split("T")[0]; // Récupère la date du jour au format 'YYYY-MM-DD'
+        const todayTestsQuery = query(
+          collection(db, "UserTests"),
+          where("testDate", ">=", `${today}T00:00:00.000Z`),
+          where("testDate", "<=", `${today}T23:59:59.999Z`),
+          orderBy("testDate", "desc"),
+          limit(1) // Limiter à un seul document, le plus récent
+        );
+        const todayTestSnapshot = await getDocs(todayTestsQuery);
+
+        if (!todayTestSnapshot.empty) {
+          const todayTest = todayTestSnapshot.docs[0].data();
+          const userWhoPassedToday = usersData.find(
+            (user) => user.id === todayTest.userId
+          );
+          setTodayTestUser(userWhoPassedToday);
+        }
+
+        setUsers(usersData);
+        setFilteredUsers(usersData.slice(0, 5));
         setCompanies(companiesData);
+        setNbShared(sharedTestsCount);
+        setUserPassedTest(usersWhoPassedTests);
       } catch (error) {
-        console.error("Error fetching companies: ", error);
+        console.error("Erreur lors de la récupération des données:", error);
       }
     };
 
-    fetchUsers();
-    fetchCompanies();
+    fetchDashboardData();
   }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
-      setFilteredUsers(users);
+      setFilteredUsers(users.slice(0, 5));
       return;
     }
     const queryText = searchQuery.toLowerCase();
@@ -73,6 +116,12 @@ const Dashboard = () => {
 
   const handleCompanyClick = (companyId) => {
     history.push(`/admin/entreprise/users?companyId=${companyId}`);
+  };
+
+  const handleUserClick = () => {
+    if (todayTestUser?.id) {
+      history.push(`/admin/results?userId=${todayTestUser?.id}`);
+    }
   };
 
   return (
@@ -97,18 +146,18 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col md={4}>
-          <span className="title-kpi">Test en attente de complétion</span>
+          <span className="title-kpi">Tests passés</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">4</Card.Text>
+              <Card.Text className="kpi-circle">{userPassedTest}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
         <Col md={4}>
-          <span className="title-kpi">Test partagés</span>
+          <span className="title-kpi">Tests partagés</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">18</Card.Text>
+              <Card.Text className="kpi-circle">{nbShared}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -219,9 +268,17 @@ const Dashboard = () => {
                   <h1 className="title">Test terminé aujourd'hui</h1>
                 </Card.Text>
               </div>
-              <div className="result-link">
-                <a href="#">Voir les résultat de Anthony D</a>
-              </div>
+              {todayTestUser ? (
+                <div className="result-link">
+                  <a
+                    onClick={handleUserClick}
+                    href="#">{`Voir les résultat de ${todayTestUser.firstName} ${todayTestUser.lastName}`}</a>
+                </div>
+              ) : (
+                <div className="result-link">
+                  <p>{`Aucun test passé`}</p>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>

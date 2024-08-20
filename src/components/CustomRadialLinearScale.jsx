@@ -9,8 +9,6 @@ import {
   toTRBLCorners,
 } from "chart.js/helpers";
 
-const DEBUG = false;
-
 function drawBackground(ctx, chartArea, backgroundColor) {
   ctx.save();
   ctx.fillStyle = backgroundColor;
@@ -30,10 +28,10 @@ function drawPointLabels(scale, labelCount) {
     ...Array(9).fill("rgba(0, 38, 142, 0.2)"),     // Etat d'esprit
     ...Array(9).fill("rgba(226, 50, 50, 0.2)"),    // Communication
     ...Array(9).fill("rgba(226, 168, 50, 0.3)"),   // Confiance
-    ...Array(10).fill("rgba(226, 220, 50, 0.2)"),   // Conflit
-    ...Array(10).fill("rgba(168, 220, 50, 0.3)"),   // Résilience
+    ...Array(10).fill("rgba(226, 220, 50, 0.2)"),  // Conflit
+    ...Array(10).fill("rgba(168, 220, 50, 0.3)"),  // Résilience
     ...Array(16).fill("rgba(50, 226, 185, 0.4)"),  // Vous-même
-     ...Array(8).fill("rgba(83, 109, 254, 0.2)"),   // Dans le futur
+    ...Array(8).fill("rgba(83, 109, 254, 0.2)"),   // Dans le futur
   ];
 
   const centerX = scale.xCenter;
@@ -109,7 +107,7 @@ function drawPointLabels(scale, labelCount) {
 }
 
 function drawGroupLabels(scale, groupLabels) {
-  const {
+ /*  const {
     ctx,
     xCenter,
     yCenter,
@@ -117,15 +115,27 @@ function drawGroupLabels(scale, groupLabels) {
     options: { pointLabels },
   } = scale;
 
-  const radius = drawingArea + 80;
+  // Récupérer la distance de l'option ou utiliser une valeur par défaut
+  const labelDistance = pointLabels.groupLabelDistance || 50;
+
+  const radius = drawingArea + labelDistance; // Utiliser la distance configurable
   const angleStep = (Math.PI * 2) / scale._pointLabels.length;
-  const segmentSize = Math.floor(scale._pointLabels.length / groupLabels.length);
+  const segmentSizes = [
+    6,  // Vous aujourd'hui
+    12, // Vos valeurs
+    9,  // Etat d'esprit
+    9,  // Communication
+    9,  // Confiance
+    10, // Conflit
+    10, // Résilience
+    16, // Vous-même
+    8,  // Dans le futur
+  ];
 
+  let startIndex = 0;
   for (let i = 0; i < groupLabels.length; i++) {
-    const startIndex = i * segmentSize;
-    const endIndex = (i + 1) * segmentSize;
-    const midIndex = Math.floor((startIndex + endIndex) / 2);
-
+    const segmentSize = segmentSizes[i];
+    const midIndex = startIndex + Math.floor(segmentSize / 2);
     const angle = (angleStep * midIndex) - (Math.PI / 2);
 
     const labelX = xCenter + Math.cos(angle) * radius;
@@ -158,8 +168,11 @@ function drawGroupLabels(scale, groupLabels) {
     );
 
     ctx.restore();
-  }
+
+    startIndex += segmentSize;
+  } */
 }
+
 
 function drawRadiusLine(scale, gridLineOpts, radius, labelCount, borderOpts, fillStyle, index) {
   const ctx = scale.ctx;
@@ -197,6 +210,17 @@ function drawRadiusLine(scale, gridLineOpts, radius, labelCount, borderOpts, fil
   if (index === 7) {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = lineWidth * 3; // Épaisseur du trait doublée
+    ctx.setLineDash(borderOpts.dash);
+    ctx.lineDashOffset = borderOpts.dashOffset;
+    ctx.beginPath();
+    pathRadiusLine(scale, radius, circular, labelCount);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  if (index === 9) {
+    ctx.strokeStyle = '#62b6cb';
+    ctx.lineWidth = lineWidth * 2; // Épaisseur du trait doublée
     ctx.setLineDash(borderOpts.dash);
     ctx.lineDashOffset = borderOpts.dashOffset;
     ctx.beginPath();
@@ -258,7 +282,15 @@ class CustomRadialLinearScale extends RadialLinearScale {
     ];
 
     const groupLabels = [
-      // "Vous aujourd'hui", 'Vos valeurs', "Etat d'esprit", 'Communication', 'Confiance', 'Conflit', 'Résilience', 'Vous-même', 'Dans le futur'
+      "Vous aujourd'hui", 
+      'Vos valeurs', 
+      "Etat d'esprit", 
+      'Communication', 
+      'Confiance', 
+      'Conflit', 
+      'Résilience', 
+      'Vous-même', 
+      'Dans le futur'
     ];
 
     if (opts.pointLabels.display) {

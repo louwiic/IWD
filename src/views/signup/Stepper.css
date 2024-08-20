@@ -1,0 +1,71 @@
+.stepper-container {
+    margin-bottom: 20px;
+    padding-left: 123px; 
+    padding-right: 123px;
+    margin-bottom: 30px; 
+}
+  
+.stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: relative; /* Added to make labels absolute to the stepper */
+}
+  
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+  
+.circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 24px;
+    z-index: 1; /* Ensure the circle is above the bar */
+}
+  
+.circle-completed {
+    background-color: #c48c33; /* Gold color */
+    color: white;
+}
+  
+.circle-pending {
+    border: 2px solid #c48c33; /* Gold border */
+    color: #c48c33;
+    background-color: white;
+}
+  
+.nc-icon {
+    font-weight: bold; /* or 600, 700, etc. */
+    font-size: 28px; /* Slightly larger size to appear thicker */
+}
+  
+.bar {
+    height: 4px;
+    flex: 1;
+    background-color: #c48c33;
+    z-index: 0; /* Ensure the bar is behind the circles */
+    position: relative;
+   
+}
+  
+.filled {
+    background-color: #c48c33; /* Gold color */
+}
+  
+.label {
+    font-size: 14px;
+    color: #333;
+    position: absolute;
+    top: 60px; /* Position the label below the circle */
+    width: 100px;
+    text-align: center;
+}

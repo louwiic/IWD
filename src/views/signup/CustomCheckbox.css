@@ -1,0 +1,37 @@
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.custom-checkbox-input {
+  display: none; /* Cache l'input radio par défaut */
+}
+
+.custom-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: #f1e7d0;
+  border: 2px solid #d9d2b0;
+  margin-right: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkmark.checked {
+  background-color: #d9b580;  
+  border: 2px solid #d9b580;
+  color:#fff
+}
+
+.fas.fa-check {
+  font-size: 14px; /* Ajuste la taille de l'icône */
+}

@@ -1,0 +1,50 @@
+.stepper-container {
+  margin-bottom: 20px;
+}
+
+.stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.circle.completed {
+  background-color: #f1c40f;
+  border-color: #f1c40f;
+  color: #fff;
+}
+
+.label {
+  font-size: 14px;
+  color: #333;
+}
+
+.bar {
+  width: 100px;
+  height: 4px;
+  background-color: #ccc;
+}
+
+.bar.filled {
+  background-color: #f1c40f;
+}
