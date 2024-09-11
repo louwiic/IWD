@@ -17,9 +17,11 @@ import {
   setDoc,
   updateDoc,
   arrayUnion,
+  getDoc,
 } from "firebase/firestore";
 import "../css/Test.css";
 import SuccessModal from "../views/Success";
+import WelcomeModal from "./WelcomeModal";
 
 const Test = () => {
   const [categories, setCategories] = useState([]);
@@ -29,6 +31,8 @@ const Test = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [testDocId, setTestDocId] = useState(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+  const history = useHistory();
 
   const fetchQuestions = async () => {
     try {
@@ -45,10 +49,16 @@ const Test = () => {
 
   useEffect(() => {
     fetchQuestions();
-
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        setCurrentUser(user);
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          setCurrentUser({ id: user.uid, ...userDocSnap.data() });
+        } else {
+          console.log("No such user document!");
+        }
       } else {
         setCurrentUser(null);
       }
@@ -76,14 +86,16 @@ const Test = () => {
     currentQuestions.forEach((question) => {
       randomResponses[question] = Math.floor(Math.random() * 6) + 4;
     });
-    setResponses(randomResponses);
+    setResponses((prevResponses) => ({
+      ...prevResponses,
+      ...randomResponses,
+    }));
   };
 
   const saveResponses = async () => {
     const currentCategory = categories[currentCategoryIndex];
     const testRef = collection(db, "Tests");
 
-    // Créer un document unique pour chaque test si ce n'est pas déjà fait
     if (!testDocId) {
       const newTestDocRef = doc(testRef);
       setTestDocId(newTestDocRef.id);
@@ -98,7 +110,7 @@ const Test = () => {
       };
 
       await setDoc(newTestDocRef, {
-        userId: currentUser.uid,
+        userId: currentUser.id,
         sharedState: false,
         testDate: new Date().toISOString(),
         categories: [newCategoryData],
@@ -119,14 +131,20 @@ const Test = () => {
         categories: arrayUnion(newCategoryData),
       });
 
-      // Si c'est la dernière catégorie, créer le document UserTests
       if (currentCategoryIndex === categories.length - 1) {
         const userTestRef = doc(collection(db, "UserTests"), testDocId);
         await setDoc(userTestRef, {
-          userId: currentUser.uid,
+          userId: currentUser.id,
           sharedState: false,
           testDate: new Date().toISOString(),
-          testId: testDocId, // Ajouter l'ID du test ici
+          testId: testDocId,
+          newTestSended: currentUser?.newTestSended,
+        });
+
+        // Mettre à jour la propriété newTestSended à null dans le document "users"
+        const userRef = doc(db, "users", currentUser.id);
+        await updateDoc(userRef, {
+          newTestSended: null,
         });
       }
     }
@@ -148,8 +166,8 @@ const Test = () => {
 
     if (currentCategoryIndex < categories.length - 1) {
       setCurrentCategoryIndex(currentCategoryIndex + 1);
-      setResponses({}); // Reset responses when moving to the next page
     } else {
+      history.push("/user/home");
       setShowSuccessModal(true); // Show success modal
     }
   };
@@ -162,104 +180,127 @@ const Test = () => {
 
   return (
     <Container fluid>
-      <Row className="justify-content-center mt-5">
-        <Col md="8">
-          <Card>
-            <Card.Header>
-              <div style={{ marginBottom: "1rem" }}>
-                <div style={{ fontSize: "1rem", color: "#424242" }}>
-                  <strong>1. Boutons de navigation ci-dessous</strong>
-                </div>
-              </div>
-              <Card.Title as="h4">
-                Page {currentCategoryIndex + 1} de {categories.length}
-              </Card.Title>
-              <Card.Title as="h4">
-                {currentCategory?.categorie || ""}
-              </Card.Title>
-              <div
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#424242",
-                  fontStyle: "italic",
-                }}>
-                (1 = faible à 9 = élevé)
-              </div>
-              <div
-                style={{
-                  fontSize: "1rem",
-                  color: "#424242",
-                  fontStyle: "italic",
-                  marginTop: "0.5rem",
-                }}>
-                <strong>Évaluez :</strong>
-              </div>
-            </Card.Header>
+      {!currentUser?.newTestSended ? (
+        <Col md="12">
+          <Card style={{ borderRadius: "4px" }}>
             <Card.Body>
-              {showAlert && (
-                <Alert variant="danger">
-                  Veuillez répondre à toutes les questions avant de continuer.
-                </Alert>
-              )}
-              {currentCategory ? (
-                currentCategory.questions.map((q, index) => (
-                  <Form.Group key={index} className="mt-3">
-                    <Form.Label>
-                      <span style={{ fontWeight: "bold", color: "#424242" }}>
-                        {index + 1}.
-                      </span>
-                      <span style={{ fontWeight: "600", color: "#424242" }}>
-                        {" "}
-                        {formatQuestion(q)}
-                      </span>
-                    </Form.Label>
-                    <div className="radio-group">
-                      {[...Array(9).keys()].map((i) => (
-                        <span className="radio-container" key={i}>
-                          <span className="radio-label">{i + 1}</span>
-                          <input
-                            type="radio"
-                            className="custom-radio"
-                            name={`question-${index}`}
-                            value={i + 1}
-                            checked={responses[q] === i + 1}
-                            onChange={() => handleResponseChange(q, i + 1)}
-                          />
-                        </span>
-                      ))}
-                    </div>
-                  </Form.Group>
-                ))
-              ) : (
-                <p>Chargement des questions...</p>
-              )}
+              <span>
+                Vous n'avez pas encore reçu de test à passer (recharger la page
+                si un nouveau test viens de vous êtes envoyé)
+              </span>
             </Card.Body>
-            <Card.Footer className="d-flex justify-content-between">
-              <div>
-                <Button
-                  variant="secondary"
-                  onClick={handleBack}
-                  disabled={currentCategoryIndex === 0}>
-                  Retour
-                </Button>
-              </div>
-              <div>
-                <Button variant="primary" onClick={handleNext}>
-                  {currentCategoryIndex === categories.length - 1
-                    ? "Terminer"
-                    : "Suivant"}
-                </Button>
-                <Button
-                  variant="info"
-                  onClick={handleRandomize}
-                  className="ml-2">
-                  Randomize
-                </Button>
-              </div>
-            </Card.Footer>
           </Card>
         </Col>
-      </Row>
+      ) : (
+        <Row className="justify-content-center mt-5">
+          <Col md="10">
+            <Card>
+              <Card.Header>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "1rem", color: "#424242" }}>
+                    <strong>1. Boutons de navigation ci-dessous</strong>
+                  </div>
+                </div>
+                <Card.Title as="h4">
+                  <strong>
+                    {" "}
+                    Page {currentCategoryIndex + 1} sur {categories.length}
+                  </strong>
+                </Card.Title>
+                <Card.Title as="h4">
+                  {currentCategory?.categorie || ""}
+                </Card.Title>
+                <div
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "#424242",
+                    fontStyle: "italic",
+                  }}>
+                  (1 = faible à 9 = élevé)
+                </div>
+                <div
+                  style={{
+                    fontSize: "1rem",
+                    color: "#424242",
+                    fontStyle: "italic",
+                    marginTop: "0.5rem",
+                  }}>
+                  <strong>Évaluez :</strong>
+                </div>
+              </Card.Header>
+              <Card.Body>
+                {showAlert && (
+                  <Alert variant="danger">
+                    Veuillez répondre à toutes les questions avant de continuer.
+                  </Alert>
+                )}
+                {currentCategory ? (
+                  currentCategory.questions.map((q, index) => (
+                    <Form.Group key={index} className="mt-3">
+                      <Form.Label>
+                        <span style={{ fontWeight: "bold", color: "#424242" }}>
+                          {index + 1}.
+                        </span>
+                        <span style={{ fontWeight: "600", color: "#424242" }}>
+                          {" "}
+                          {formatQuestion(q)}
+                        </span>
+                      </Form.Label>
+                      <div className="radio-group">
+                        {[...Array(9).keys()].map((i) => (
+                          <span className="radio-container" key={i}>
+                            <span className="radio-label">{i + 1}</span>
+                            <input
+                              type="radio"
+                              className="custom-radio"
+                              name={`question-${index}`}
+                              value={i + 1}
+                              checked={responses[q] === i + 1}
+                              onChange={() => handleResponseChange(q, i + 1)}
+                            />
+                          </span>
+                        ))}
+                      </div>
+                    </Form.Group>
+                  ))
+                ) : (
+                  <p>Chargement des questions...</p>
+                )}
+              </Card.Body>
+              <Card.Footer className="d-flex justify-content-between">
+                <div>
+                  <Button
+                    variant="secondary"
+                    onClick={handleBack}
+                    disabled={currentCategoryIndex === 0}>
+                    Retour
+                  </Button>
+                </div>
+                <div>
+                  <Button style={{ color: "#fff" }} onClick={handleNext}>
+                    {currentCategoryIndex === categories.length - 1
+                      ? "Terminer"
+                      : "Suivant"}
+                  </Button>
+                  <Button
+                    variant="info"
+                    onClick={handleRandomize}
+                    className="ml-2">
+                    Randomize
+                  </Button>
+                </div>
+              </Card.Footer>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      <WelcomeModal
+        show={showWelcomeModal}
+        onHide={() => setShowWelcomeModal(false)}
+        userName={currentUser?.firstName || "Utilisateur"}
+      />
+
       <SuccessModal
         show={showSuccessModal}
         onHide={() => setShowSuccessModal(false)}

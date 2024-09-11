@@ -9,7 +9,7 @@ const SuccessModal = ({ show, onHide }) => {
     if (show) {
       const timer = setTimeout(() => {
         onHide();
-        history.push("/user");
+        history.push("/user/home");
       }, 3000); // Redirection après 3 secondes
 
       return () => clearTimeout(timer);
@@ -17,7 +17,7 @@ const SuccessModal = ({ show, onHide }) => {
   }, [show, onHide, history]);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
         <Modal.Title>Questionnaire terminé</Modal.Title>
       </Modal.Header>

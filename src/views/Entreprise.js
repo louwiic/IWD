@@ -20,6 +20,8 @@ import {
   updateDoc,
   deleteDoc,
   collection,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import ConfirmDeleteModal from "components/ConfirmDeleteModal";
@@ -61,11 +63,13 @@ const Entreprise = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [companies, setCompanies] = useState([]);
+  const [filteredCompanies, setFilteredCompanies] = useState([]); // Nouvel état pour les entreprises filtrées
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchCompanies();
@@ -79,6 +83,7 @@ const Entreprise = () => {
         ...doc.data(),
       }));
       setCompanies(companyList);
+      setFilteredCompanies(companyList); // Initialiser les entreprises filtrées avec la liste complète
     } catch (error) {
       console.error(
         "Erreur lors de la récupération des entreprises :",
@@ -165,6 +170,38 @@ const Entreprise = () => {
     }
   };
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+
+    if (!searchQuery.trim()) {
+      setFilteredCompanies(companies);
+      return;
+    }
+
+    const queryText = searchQuery.toLowerCase();
+
+    try {
+      // Requête pour rechercher par companyName
+      const companyNameQuery = query(
+        collection(db, "companies"),
+        where("companyName", ">=", queryText),
+        where("companyName", "<=", queryText + "\uf8ff")
+      );
+
+      // Obtenir les résultats
+      const companySnapshot = await getDocs(companyNameQuery);
+
+      const companyResults = companySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setFilteredCompanies(companyResults);
+    } catch (error) {
+      console.error("Error searching companies: ", error);
+    }
+  };
+
   return (
     <Container>
       <Toast
@@ -208,29 +245,32 @@ const Entreprise = () => {
           }}>
           <Form
             inline
+            onSubmit={handleSearch}
             style={{ display: "flex", flex: 1, alignItems: "center" }}>
             <Form.Control
               type="text"
               placeholder="Recherche"
-              className="mr-sm-2"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <button
               style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#fff",
-                border: "1px solid #ced4da",
+                backgroundColor: "rgba(206, 145, 54, 0.36)",
+                border: "none",
                 borderRadius: "5px",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                marginLeft: "8px",
+                color: "#CE9136",
+                height: "40px",
+                width: "40px",
+                alignSelf: "flex-end",
+                marginLeft: 6,
               }}>
-              <img
-                src="path/to/search-icon.png"
-                alt="Search"
-                style={{ width: "20px", height: "20px" }}
-              />
+              <i
+                className="fa fa-search"
+                aria-hidden="true"
+                style={{ fontSize: 20 }}></i>
             </button>
           </Form>
         </Col>
@@ -260,7 +300,7 @@ const Entreprise = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {companies.map((company) => (
+                  {filteredCompanies.map((company) => (
                     <tr key={company.id}>
                       <td className="text-center align-middle">
                         <span className="img-content">
@@ -371,6 +411,7 @@ const Entreprise = () => {
           </Button>
         </div>
       </Form>
+
       <ConfirmDeleteModal
         show={showDeleteModal}
         handleClose={() => setShowDeleteModal(false)}

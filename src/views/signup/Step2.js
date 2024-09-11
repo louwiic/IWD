@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Form, Row, Col } from "react-bootstrap";
 import CustomCheckbox from "./CustomCheckBox";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase/firebase"; // Assurez-vous que le chemin vers firebase est correct
+import { db } from "../../firebase/firebase";
 import Autocomplete from "components/AutoComplete";
 
-const Step2 = ({ formData, setFormData }) => {
+const Step2 = ({ formData, setFormData, errors, setErrors }) => {
   const [isPartOfCompany, setIsPartOfCompany] = useState(false);
   const [isPersonalQuestionnaire, setIsPersonalQuestionnaire] = useState(false);
-  const [companies, setCompanies] = useState([]); // Liste des entreprises
+  const [companies, setCompanies] = useState([]);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -23,11 +23,11 @@ const Step2 = ({ formData, setFormData }) => {
         console.error("Error fetching companies: ", error);
       }
     };
-
     fetchCompanies();
   }, []);
 
   const handlePartOfCompanyChange = () => {
+    setErrors({});
     setIsPartOfCompany(true);
     setIsPersonalQuestionnaire(false);
     setFormData((prevData) => ({
@@ -38,6 +38,7 @@ const Step2 = ({ formData, setFormData }) => {
   };
 
   const handlePersonalQuestionnaireChange = () => {
+    setErrors({});
     setIsPartOfCompany(false);
     setIsPersonalQuestionnaire(true);
     setFormData((prevData) => ({
@@ -49,7 +50,6 @@ const Step2 = ({ formData, setFormData }) => {
 
   const handleCompanySelection = (value) => {
     const selectedCompany = companies.find((company) => company.name === value);
-    console.log(" *** selectedCompany ***", selectedCompany);
     setFormData((prevData) => ({
       ...prevData,
       companyName: value,
@@ -59,7 +59,7 @@ const Step2 = ({ formData, setFormData }) => {
 
   return (
     <Form>
-      <Row className="mb-3">
+      <Row className="mb-3" style={{ marginTop: 56 }}>
         <Col md={12}>
           <Form.Group
             controlId="partOfCompany"
@@ -75,7 +75,7 @@ const Step2 = ({ formData, setFormData }) => {
           </Form.Group>
           <Form.Group
             controlId="personalQuestionnaire"
-            className="d-flex align-items-center">
+            className="d-flex align-items-center mt-4">
             <CustomCheckbox
               label="Je passe le questionnaire à titre personnel"
               id="personalQuestionnaire"
@@ -85,15 +85,20 @@ const Step2 = ({ formData, setFormData }) => {
               onChange={handlePersonalQuestionnaireChange}
             />
           </Form.Group>
+          {errors?.selection && (
+            <p style={{ color: "red" }}>{errors.selection}</p>
+          )}
         </Col>
       </Row>
 
       {isPartOfCompany && (
         <>
-          <Row className="mb-3">
+          <Row className="mb-3" style={{ marginTop: 42 }}>
             <Col md={12}>
               <Form.Group controlId="companyName">
-                <Form.Label>Tapez le nom de votre entreprise</Form.Label>
+                <Form.Label style={{ color: "black", fontWeight: "bold" }}>
+                  Tapez le nom de votre entreprise
+                </Form.Label>
                 <Autocomplete
                   suggestions={companies.map((company) => company.name)}
                   placeholder={"Ex: SNCF"}
@@ -106,7 +111,9 @@ const Step2 = ({ formData, setFormData }) => {
           <Row className="mb-3">
             <Col md={12}>
               <Form.Group controlId="businessUnit">
-                <Form.Label>Business Unit</Form.Label>
+                <Form.Label style={{ color: "black", fontWeight: "bold" }}>
+                  Business Unit
+                </Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="Business Unit"

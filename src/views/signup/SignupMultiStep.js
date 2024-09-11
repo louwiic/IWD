@@ -15,6 +15,8 @@ const MultiStepForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setIsLoading] = useState(false);
   const history = useHistory();
+  const [errors, setErrors] = useState({});
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,6 +24,7 @@ const MultiStepForm = () => {
     role: "",
     email: "",
     password: "",
+    passwordConfirm: "",
     gender: "",
     partOfCompany: false,
     personalQuestionnaire: false,
@@ -31,6 +34,69 @@ const MultiStepForm = () => {
   });
 
   const handleNext = () => {
+    const currentStepFields = {
+      0: [
+        "firstName",
+        "lastName",
+        "birthDate",
+        "gender",
+        "email",
+        "phone",
+        "countryOfOrigin",
+        "countryOfActivity",
+      ],
+      2: ["password", "passwordConfirm"],
+    }[currentStep];
+
+    if (currentStep === 1) {
+      const newStep2Errors = {};
+      if (!formData["partOfCompany"] && !formData["personalQuestionnaire"]) {
+        newStep2Errors.selection = "Vous devez sélectionner une des options.";
+      }
+
+      if (formData["partOfCompany"] && !formData["companyName"]) {
+        newStep2Errors.companyName = "Le nom de l'entreprise est requis.";
+      }
+
+      if (Object.keys(newStep2Errors).length > 0) {
+        setErrors(newStep2Errors);
+        return; // Stopper ici si des erreurs sont trouvées
+      }
+    }
+
+    if (!currentStepFields || currentStepFields.length === 0) {
+      setCurrentStep((prev) => prev + 1);
+      return;
+    }
+
+    const newErrors = {};
+    currentStepFields.forEach((field) => {
+      if (!formData[field]) {
+        newErrors[field] = "Ce champ est requis.";
+      }
+    });
+
+    if (currentStep === 2) {
+      if (!formData.password) {
+        newErrors.password = "Le mot de passe est requis.";
+      }
+
+      if (!formData.passwordConfirm) {
+        newErrors.passwordConfirm =
+          "La confirmation du mot de passe est requise.";
+      }
+
+      if (formData.password !== formData.passwordConfirm) {
+        newErrors.passwordConfirm = "Les mots de passe ne correspondent pas.";
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     setCurrentStep((prev) => prev + 1);
   };
 
@@ -39,9 +105,24 @@ const MultiStepForm = () => {
   };
 
   const steps = [
-    <Step1 formData={formData} setFormData={setFormData} />,
-    <Step2 formData={formData} setFormData={setFormData} />,
-    <Step3 formData={formData} setFormData={setFormData} />,
+    <Step1
+      formData={formData}
+      setFormData={setFormData}
+      errors={errors}
+      setErrors={setErrors}
+    />,
+    <Step2
+      formData={formData}
+      setFormData={setFormData}
+      errors={errors}
+      setErrors={setErrors}
+    />,
+    <Step3
+      formData={formData}
+      setFormData={setFormData}
+      errors={errors}
+      setErrors={setErrors}
+    />,
   ];
 
   const handleSubmit = async (e) => {
@@ -58,7 +139,7 @@ const MultiStepForm = () => {
         personalQuestionnaire,
         countryOfOrigin,
         countryOfActivity,
-        country = "", // Assurez-vous que `country` n'est pas undefined
+        country = "",
         phoneCode,
         phone,
       } = formData;
@@ -70,10 +151,10 @@ const MultiStepForm = () => {
         lastName,
         birthDate,
         email,
-        company: companyId ?? "", // Utilisez une chaîne vide si `companyId` est undefined
+        company: companyId ?? "1x5OrUoXQToolZ98EjYP",
         businessUnit: businessUnit ?? "",
         personalQuestionnaire,
-        country, // `country` ne sera jamais undefined ici
+        country,
         countryOfOrigin: countryOfOrigin ?? "",
         countryOfActivity: countryOfActivity ?? "",
         phoneCode,
@@ -82,8 +163,9 @@ const MultiStepForm = () => {
         role: "candidate",
       };
 
+      /*       return console.log(" *** payload ***", JSON.stringify(payload, null, 2));
+       */
       setIsLoading(true);
-      // Créer l'utilisateur avec Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -91,14 +173,11 @@ const MultiStepForm = () => {
       );
       const user = userCredential.user;
 
-      // Ajouter des informations utilisateur dans Firestore
       await setDoc(doc(db, "users", user.uid), payload);
 
-      // Obtenir le token de l'utilisateur
       const token = await user.getIdToken();
       localStorage.setItem("authToken", token);
 
-      // Récupérer les données utilisateur
       const userDoc = await getDoc(doc(db, "users", user.uid));
 
       if (userDoc.exists()) {
@@ -108,7 +187,6 @@ const MultiStepForm = () => {
 
         alert("Compte créé avec succès !");
 
-        // Redirection en fonction du rôle
         if (userData.role !== "admin") {
           history.push("/user/test/");
         } else {
@@ -128,15 +206,31 @@ const MultiStepForm = () => {
     }
   };
 
+  const handleGoBack = () => {
+    history.goBack();
+  };
+
   return (
     <div style={gradientStyle}>
       <Container>
         <Row className="justify-content-center">
           <Col md={8}>
-            <Card className="p-4">
-              <span className="text-center mb-4" style={{ fontSize: 20 }}>
-                Créer un compte
-              </span>
+            <Card
+              className="p-4"
+              style={{ maxHeight: "100vh", overflowY: "auto" }}>
+              <div className="d-flex align-items-center mb-4">
+                {currentStep === 0 && (
+                  <Button
+                    variant="link"
+                    onClick={handleGoBack}
+                    style={{ marginRight: "auto" }}>
+                    Retour
+                  </Button>
+                )}
+                <span className="text-center" style={{ fontSize: 20, flex: 1 }}>
+                  Créer un compte
+                </span>
+              </div>
               <Stepper currentStep={currentStep} />
               {steps[currentStep]}
               <Row className="mt-4">
@@ -146,21 +240,22 @@ const MultiStepForm = () => {
                       <Button
                         variant="secondary"
                         onClick={handlePrev}
-                        style={{ width: "100%" }}>
-                        Précédent
+                        style={{
+                          width: "100%",
+                          borderColor: "#ce9136",
+                          color: "#ce9136",
+                          fontFamily: "Montserrat",
+                          fontWeight: "bolder",
+                        }}>
+                        Retour
                       </Button>
                     </Col>
-                    {currentStep == steps.length - 1 ? (
+                    {currentStep === steps.length - 1 ? (
                       <Col xs={8} className="offset-1">
-                        {/*  <Button
-                          variant="success"
-                          onClick={handleSubmit}
-                          style={{ width: "100%" }}>
-                          Soumettre
-                        </Button> */}
                         <Button
                           className="btn-fill mt-3 btn-primary-border"
                           type="submit"
+                          style={{ color: "#fff", width: "100%" }}
                           onClick={handleSubmit}
                           disabled={loading}>
                           {loading ? "Chargement..." : "Enregistrer"}
@@ -171,7 +266,7 @@ const MultiStepForm = () => {
                         <Button
                           variant="primary"
                           onClick={handleNext}
-                          style={{ width: "100%" }}>
+                          style={{ color: "#fff", width: "100%" }}>
                           Suivant
                         </Button>
                       </Col>
@@ -181,23 +276,12 @@ const MultiStepForm = () => {
                 {currentStep === 0 && (
                   <Col xs={12}>
                     <Button
-                      variant="primary"
-                      onClick={handleNext}
-                      style={{ width: "100%" }}>
+                      style={{ color: "#fff", width: "100%" }}
+                      onClick={handleNext}>
                       Suivant
                     </Button>
                   </Col>
                 )}
-                {/*    {currentStep === steps.length - 1 && (
-                  <Col xs={12}>
-                    <Button
-                      variant="success"
-                      onClick={() => console.log(" *** formData ***", formData)}
-                      style={{ width: "100%" }}>
-                      Soumettre
-                    </Button>
-                  </Col>
-                )} */}
               </Row>
             </Card>
           </Col>

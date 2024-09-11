@@ -119,7 +119,7 @@ const Questions = () => {
           style={{ height: 158 }}
         />
         <div>
-          <h1 className="title">Utilisateurs</h1>
+          <h1 className="title">Questionnaire</h1>
           <span className="subtitle">Ajouter ou modifier des questions</span>
         </div>
       </Col>
@@ -140,7 +140,7 @@ const Questions = () => {
                 onChange={handleCategoryChange}
                 value={selectedCategory}>
                 <option value="">Sélectionnez une catégorie</option>
-                {categories.map((category, index) => (
+                {(categories || []).map((category, index) => (
                   <option key={index} value={category.id}>
                     {category.categorie}
                   </option>

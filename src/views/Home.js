@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [nbShared, setNbShared] = useState(0);
   const [userPassedTest, setUserPassedTest] = useState(0);
+  const [newTestSendedCount, setNewTestSendedCount] = useState(0);
   const [todayTestUser, setTodayTestUser] = useState(null);
   const history = useHistory();
 
@@ -77,24 +78,34 @@ const Dashboard = () => {
         );
         const todayTestSnapshot = await getDocs(todayTestsQuery);
 
+        let todayTestUser = null;
         if (!todayTestSnapshot.empty) {
           const todayTest = todayTestSnapshot.docs[0].data();
-          const userWhoPassedToday = usersData.find(
+          todayTestUser = usersData.find(
             (user) => user.id === todayTest.userId
           );
-          setTodayTestUser(userWhoPassedToday);
         }
 
+        // Étape 6: Compter le nombre de nouveaux tests envoyés
+        const newTestSendedCount = usersData.reduce((count, user) => {
+          if (user.newTestSended !== null && user.newTestSended !== undefined) {
+            return count + 1;
+          }
+          return count;
+        }, 0);
+
+        // Mettre à jour les états
         setUsers(usersData);
         setFilteredUsers(usersData.slice(0, 5));
         setCompanies(companiesData);
         setNbShared(sharedTestsCount);
         setUserPassedTest(usersWhoPassedTests);
+        setTodayTestUser(todayTestUser); // Assurez-vous d'avoir un état pour `todayTestUser`
+        setNewTestSendedCount(newTestSendedCount); // Assurez-vous d'avoir un état pour `newTestSendedCount`
       } catch (error) {
         console.error("Erreur lors de la récupération des données:", error);
       }
     };
-
     fetchDashboardData();
   }, []);
 
@@ -118,9 +129,10 @@ const Dashboard = () => {
     history.push(`/admin/entreprise/users?companyId=${companyId}`);
   };
 
-  const handleUserClick = () => {
-    if (todayTestUser?.id) {
-      history.push(`/admin/results?userId=${todayTestUser?.id}`);
+  const handleUserClick = (userId?) => {
+    let id = userId ?? todayTestUser?.id;
+    if (id) {
+      history.push(`/admin/results?userId=${id}`);
     }
   };
 
@@ -141,7 +153,7 @@ const Dashboard = () => {
           <span className="title-kpi">Tests envoyés</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">22</Card.Text>
+              <Card.Text className="kpi-circle">{newTestSendedCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -185,6 +197,7 @@ const Dashboard = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+
                 <button
                   type="submit"
                   style={{
@@ -194,9 +207,11 @@ const Dashboard = () => {
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    marginLeft: "8px",
-                    padding: "6px 12px",
                     color: "#CE9136",
+                    height: "40px",
+                    width: "40px",
+                    alignSelf: "flex-end",
+                    marginLeft: 6,
                   }}>
                   <i
                     className="fa fa-search"
@@ -219,7 +234,9 @@ const Dashboard = () => {
                 <tbody>
                   {filteredUsers.map((user) => (
                     <tr key={user.id}>
-                      <td className="text-center align-middle">
+                      <td
+                        className="text-center align-middle"
+                        onClick={() => handleUserClick(user.id)}>
                         <img src={user_iwd} alt="user_iwd" className="icon" />
                       </td>
                       <td>{`${user.lastName} ${user.firstName}`}</td>

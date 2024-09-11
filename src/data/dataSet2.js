@@ -1,304 +1,361 @@
-import { useEffect, useState } from "react";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { useCallback, useEffect, useState } from "react";
+import { db } from "../firebase/firebase";
+import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 
-const UseChartData2 = () => {
-  const [chartData2, setChartData2] = useState(null);
+const UseChartData = () => {
+  const [chartData, setChartData] = useState(null);
+  const [categoriesData, setCategoriesData] = useState([]);
+  const [date, setDate] = useState(null);
+  const [date2, setDate2] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [LeaderShip, setLeaderShip] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [testData, setTestData] = useState(null);
+  const [testDates, setTestDates] = useState([]);
+
+  const location = useLocation();
+  const userIdStorage = localStorage.getItem("userIdStorage");
+  const role = localStorage.getItem("role");
+
+  useEffect(() => {
+    if (role === "candidate") {
+      setUserId(userIdStorage);
+    }
+  }, [role]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const idUser = params.get("userId");
+    if (idUser) {
+      setUserId(idUser);
+    }
+  }, [location]);
+
+  const labelVA = [
+    "Leader",
+    "Qualités",
+    "Efforts",
+    "Potentiel",
+    "Satisf-Pro",
+    "Dev-Pro",
+  ];
+  const labels = [
+    ...labelVA,
+    "Indépendance",
+    "Défi",
+    "Créativité",
+    "Instruction",
+    "Plaisir",
+    "Responsabil",
+    "Cooperat",
+    "Accomplis",
+    "Reconnaiss",
+    "Richesse",
+    "Courage",
+    "Tranqui",
+    "Passion",
+    "Action",
+    "Atteindre",
+    "Risque",
+    "Réussir",
+    "Complexité",
+    "Impact",
+    "Emotion",
+    "Discipline",
+    "Comm-Oral",
+    "Écoute",
+    "Préparer",
+    "Comprendre",
+    "Comm-Details",
+    "Feedback",
+    "Ressenti",
+    "Comm-Écrite",
+    "Stress-mgt",
+    "Expri-Conf",
+    "Démo-Conf",
+    "Information",
+    "Délég-Autor",
+    "Maint-Limit",
+    "Tenir-Parol",
+    "Admet-Err",
+    "Appliq-Comp",
+    "Conf-Autres",
+    "Confronté",
+    "Humour",
+    "Optimiste",
+    "Opportunité",
+    "Rôle",
+    "Innov-Creat",
+    "Partg-Emoti",
+    "Repon-Contruc",
+    "Vengeance",
+    "Solui-Satisf",
+    "Atouts",
+    "Defis-Perso",
+    "Agir-Authta",
+    "Prendr-soin",
+    "Orig-Stress",
+    "Adapt-Chang",
+    "Rebondir",
+    "Degre",
+    "Collaboratio",
+    "Quali-Soutien",
+    "Physique",
+    "Mental",
+    "Spirituel",
+    "Regard-Soi",
+    "Paix-Inter",
+    "Epanouiss",
+    "Crainte",
+    "Image-Projt",
+    "Negativité",
+    "Adversité",
+    "Ruminer",
+    "Souhai-Être",
+    "Cohérence",
+    "Vie Privée",
+    "Complétude",
+    "Adap-Tecno",
+    "Volonté",
+    "Avenir-Clair",
+    "Rem-en-quest",
+    "Mgt-Ambig",
+    "Curiosité",
+    "Contribuer",
+    "Amélior-Pratq",
+    "Incertitude",
+  ];
+
+  const categoryIds = [
+    "4jx2EMzabASVxfbKBKxQ", // Leadership
+    "Kn1O3C6oUTXlgyWn5utY", // Valeurs
+    "M1zQrDhFj0LYbyYVCs1H", // Etat d'esprit
+    "u18ckyczskXpvLmQ9wCV", // Communication
+    "yz0kVA4XJ1Ivd1eFmIHZ", // Confiance
+    "rYbeaMIQuKar27QYsXVG", // Conflit
+    "yyZWreYDX93rPRnjIkwh", // Résilience
+    "wClgeAd1l2hqzfw5l4aV", // Vous-même
+    "PC6KaYF98rIsfNwH2FTC", // Dans le futur
+  ];
+
+  // Fonction pour récupérer les dates des tests de l'utilisateur
+  const getUserTestDates = async (userId) => {
+    try {
+      const userTestsRef = collection(db, "UserTests");
+      const q = query(userTestsRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+      const dates = querySnapshot.docs.map((doc) => doc.data().testDate);
+      const sortedDates = dates.sort((a, b) => new Date(a) - new Date(b));
+      setDate(sortedDates?.[0]);
+      setTestDates(sortedDates);
+    } catch (error) {
+      console.error("Error fetching UserTest dates: ", error);
+    }
+  };
+
+  const getUserTestsByUserId = async (userId, filterDate = null) => {
+    try {
+      const userTestsRef = collection(db, "UserTests");
+      let q = null;
+      if (role === "candidate") {
+        if (date) {
+          q = query(
+            userTestsRef,
+            where("userId", "==", userId),
+            where("testDate", "==", date),
+            where("sharedState", "==", true)
+          );
+        } else {
+          q = query(
+            userTestsRef,
+            where("userId", "==", userId),
+            where("sharedState", "==", true)
+          );
+        }
+      } else {
+        if (date) {
+          q = query(
+            userTestsRef,
+            where("userId", "==", userId),
+            where("testDate", "==", date)
+          );
+        } else {
+          q = query(userTestsRef, where("userId", "==", userId));
+        }
+      }
+
+      const querySnapshot = await getDocs(q);
+      const userTests = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      if (userTests?.length === 0) {
+        return [];
+      }
+
+      setTestData(userTests);
+      return userTests;
+    } catch (error) {
+      console.error("Error fetching UserTests: ", error);
+      return [];
+    }
+  };
+
+  const getCategoriesByTestId = async (testId) => {
+    try {
+      const testDocRef = doc(db, "Tests", testId);
+      const testDoc = await getDoc(testDocRef);
+      if (testDoc.exists()) {
+        const testData = testDoc.data();
+        return testData.categories;
+      } else {
+        console.log(`Test with ID ${testId} not found`);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching test categories: ", error);
+      return [];
+    }
+  };
+
+  const getUserTestsAndCategories = async (userId) => {
+    try {
+      setLoading(true);
+      const userTests = await getUserTestsByUserId(userId);
+
+      const testsWithCategories = await Promise.all(
+        userTests.map(async (userTest) => {
+          const categories = await getCategoriesByTestId(userTest.testId);
+          return {
+            ...userTest,
+            categories,
+          };
+        })
+      );
+      setLoading(false);
+      return testsWithCategories;
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchData = async () => {
-    const labels = [
-      "Leader",
-      "Qualités",
-      "Efforts",
-      "Potentiel",
-      "Satisf-Pro",
-      "Dev-Pro",
-      "Amitié",
-      "Honnêteté",
-      "Créativité",
-      "Apprentissa",
-      "Plaisir",
-      "Responsabil",
-      "Organis",
-      "Réalisation",
-      "Reconnaiss",
-      "Richesse",
-      "Sécurité",
-      "Tranqui",
-      "Passion",
-      "Action",
-      "Atteindre",
-      "Risque",
-      "Réussir",
-      "Complexité",
-      "Impact",
-      "Emotion",
-      "Discipline",
-      "Ecoute",
-      "Preparer",
-      "Comprendre",
-      "Comm-Details",
-      "Feedback",
-      "Ressenti",
-      "Comm-Ecrite",
-      "Stress-Mgt",
-      "Expri-Conf",
-      "Démo-Conf",
-      "Information",
-      "Délég-Autor",
-      "Maint-Limit",
-      "Tenir-Parol",
-      "Admet-Err",
-      "Appliq-Comp",
-      "Conf-Autres",
-      "Vengeance",
-      "Repon-Contruc",
-      "Partg-Emoti",
-      "Innov-Creat",
-      "Rôle",
-      "Opportunité",
-      "Optimiste",
-      "Humour",
-      "Quali-Soutien",
-      "Prendr-soin",
-      "Collaboratio",
-      "Degre",
-      "Rebondir",
-      "Adapt-Chang",
-      "Orig-Stress",
-      "Agir-Authta",
-      "Defis-Perso",
-      "Atouts",
+    let period1 = [];
+    let period2 = [];
 
-      "Adap-Tecno",
-      "Complétude",
-      "Vie Privée",
-      "Cohérence",
-      "Souhai-Être",
-      "Ruminer",
-      "Adversité",
-      "Negativité",
-      "Image-Projt",
-      "Crainte",
-      "Epanouiss",
-      "Paix-Inter",
-      "Regard-Soi",
-      "Spirituel",
-      "Mental",
-      "Physique",
-      "Amélior-Prata",
-      "Incertitude",
-      "Contribuer",
-      "Curiosité",
-      "Mgt-Ambig",
-      "Rem-en-quest",
-      "Avenir-Clair",
-      "Volonté",
+    const result = await getUserTestsAndCategories(userId);
+    if (result?.length === 0) return;
+    const getResponsesByCategoryIdAndDate = (dataObj, categoryId) => {
+      if (!!!dataObj) return;
+      const result = {};
+      // Trouve la catégorie spécifique par categoryId
+      const category = dataObj.categories.find(
+        (cat) => cat.category === categoryId
+      );
+      if (category) {
+        // Extrait les réponses de la catégorie
+        result.responses = category.responses.map(
+          (response) => response.response
+        );
+        result.testId = dataObj.testId;
+        result.userId = dataObj.userId;
+        result.testDate = dataObj.testDate;
+        result.sharedState = dataObj.sharedState;
+        result.sharedDate = dataObj.sharedDate;
+      }
+
+      return result;
+    };
+
+    // Itération sur les ID pour obtenir les réponses
+    period1 = categoryIds.reduce((acc, categoryId) => {
+      const responses = getResponsesByCategoryIdAndDate(
+        result?.[0],
+        categoryId
+      )?.responses;
+      return acc.concat(responses || []);
+    }, []);
+
+    /* if (!result?.[1]) {
+      period2 = categoryIds.reduce((acc, categoryId) => {
+        const responses = getResponsesByCategoryIdAndDate(
+          result?.[1],
+          categoryId
+        )?.responses;
+        return acc.concat(responses || []);
+      }, []);
+      return console.log(" *** period2 ***", JSON.stringify(result, null, 2));
+    }
+ */
+    /*   const newPeriodData = [
+      7, 6, 5, 4, 8, 9, 2, 7, 5, 6, 3, 8, 9, 4, 5, 3, 6, 8, 7, 5, 4, 3, 8, 7, 6,
+      4, 5, 3, 7, 8, 9, 2, 6, 5, 3, 7, 8, 4, 6, 3, 9, 5, 8, 7, 6, 4, 3, 8, 9, 2,
+      6, 5, 3, 7, 8, 4, 6, 3, 9, 5, 8, 7, 6, 4, 3, 8, 9, 2, 6, 5, 3, 7, 8, 4, 6,
+      3, 9, 5, 8, 7, 6, 4, 3, 8, 9, 2, 6, 5, 3, 7, 8, 4, 6, 3, 9, 5,
     ];
+ */
+    // Ensure the combined data has the correct length
+    const fullDataLength = labels.length;
+    const fullData = Array(fullDataLength).fill(null);
+    for (let i = 0; i < period1.length; i++) {
+      fullData[i] = period1[i];
+    }
 
-    const meToday = [4, 2, 4, 1, 3, 2]; // Modifié
-    const valeurs = [5, 3, 2, 4, 1, 2, 0, 4, 0, 2, 5, 4]; // Modifié
-    const ES = [2, 3, 3, 4, 2, 3, 0, 4, 4]; // Modifié
-    const CONFLIT = [3, 3, 2, 2, 4, 1, 0, 4, 3, 3]; // Modifié
-    const COM = [4, 3, 3, 2, 2, 1, 1, 4]; // Modifié
-    const CONFIANCE = [3, 3, 2, 2, 4, 4, 0, 3, 1]; // Modifié
-    const RESILIENCE = [4, 3, 2, 2, 1, 4, 3, 3, 1, 0]; // Modifié
-    const VOUSMEME = [3, 2, 3, 2, 2, 4, 1, 3, 1, 0, 3, 2, 3, 4, 2, 3]; // Modifié
-    const FUTUR = [3, 3, 4, 2, 1, 3, 2]; // Modifié
+    // Combine the new period data in the same way
+    const fullNewPeriodData = Array(fullDataLength).fill(null);
+    for (let i = 0; i < period2.length; i++) {
+      fullNewPeriodData[i] = period2[i];
+    }
+
     const formattedData = {
       labels: labels,
       datasets: [
         {
           label: "Vous aujourd'hui",
-          backgroundColor: "transparent",
-          pointBorderWidth: 2,
-          pointRadius: 3,
+          backgroundColor: "rgba(150, 50, 226, 0)",
+          borderColor: "#ef5350",
           borderWidth: 2,
-          borderColor: "rgba(150, 50, 226, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(150, 50, 226, 0.7)",
-          pointHoverBackgroundColor: "rgba(150, 50, 226, 0.7)",
-          pointHoverBorderColor: "rgba(150, 50, 226, 0.7)",
-          data: [...meToday, ...Array(14).fill(Number.NaN)],
+          pointBackgroundColor: "#424242",
+          pointHoverBackgroundColor: "#424242",
+          pointHoverBorderColor: "#424242",
+          data: fullData,
+          labelVA,
         },
         {
-          label: "Valeurs",
-          backgroundColor: "transparent",
-          pointBorderWidth: 2,
-          pointRadius: 3,
+          label: "Vous 2023",
+          backgroundColor: "rgba(50, 150, 226, 0.1)",
+          borderColor: "#0d47a1",
           borderWidth: 2,
-          borderColor: "rgba(135, 0, 0, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(135, 0, 0, 0.7)",
-          pointHoverBackgroundColor: "rgba(135, 0, 0, 0.7)",
-          pointHoverBorderColor: "rgba(135, 0, 0, 0.7)",
-          data: [
-            ...Array(meToday.length).fill(Number.NaN),
-            ...valeurs,
-            ...Array(ES.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Etat d'esprit",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(0, 38, 142, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(0, 38, 142, 0.7)",
-          pointHoverBackgroundColor: "rgba(0, 38, 142, 0.7)",
-          pointHoverBorderColor: "rgba(0, 38, 142, 0.7)",
-          data: [
-            ...Array(meToday.length + valeurs.length).fill(Number.NaN),
-            ...ES,
-            ...Array(COM.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Communication",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(226, 50, 50, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(226, 50, 50, 0.7)",
-          pointHoverBackgroundColor: "rgba(226, 50, 50, 0.7)",
-          pointHoverBorderColor: "rgba(226, 50, 50, 0.7)",
-          data: [
-            ...Array(ES.length + valeurs.length + meToday.length).fill(
-              Number.NaN
-            ),
-            ...COM,
-            ...Array(CONFIANCE.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Confiance",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(226, 168, 50, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(226, 168, 50, 0.7)",
-          pointHoverBackgroundColor: "rgba(226, 168, 50, 0.7)",
-          pointHoverBorderColor: "rgba(226, 168, 50, 0.7)",
-          data: [
-            ...Array(
-              ES.length + valeurs.length + meToday.length + COM.length
-            ).fill(Number.NaN),
-            ...CONFIANCE,
-            ...Array(CONFLIT.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Conflit",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(226, 220, 50, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(226, 220, 50, 0.7)",
-          pointHoverBackgroundColor: "rgba(226, 220, 50, 0.7)",
-          pointHoverBorderColor: "rgba(226, 200, 50, 0.7)",
-          data: [
-            ...Array(
-              ES.length +
-                valeurs.length +
-                meToday.length +
-                COM.length +
-                CONFIANCE.length
-            ).fill(Number.NaN),
-            ...CONFLIT,
-            ...Array(RESILIENCE.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Résilience",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(168, 220, 50, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(168, 220, 50, 0.7)",
-          pointHoverBackgroundColor: "rgba(168, 220, 50, 0.7)",
-          pointHoverBorderColor: "rgba(168, 200, 50, 0.7)",
-          data: [
-            ...Array(
-              ES.length +
-                valeurs.length +
-                meToday.length +
-                COM.length +
-                CONFIANCE.length +
-                CONFLIT.length
-            ).fill(Number.NaN),
-            ...RESILIENCE,
-            //...Array(RESILIENCE.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Vous-même",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(50, 226, 185, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(50, 226, 185, 0.7)",
-          pointHoverBackgroundColor: "rgba(50, 226, 185, 0.7)",
-          pointHoverBorderColor: "rgba(50, 200, 185, 0.7)",
-          data: [
-            ...Array(
-              ES.length +
-                valeurs.length +
-                meToday.length +
-                COM.length +
-                CONFIANCE.length +
-                CONFLIT.length +
-                RESILIENCE.length
-            ).fill(Number.NaN),
-            ...VOUSMEME,
-            ...Array(FUTUR.length).fill(Number.NaN),
-          ],
-        },
-        {
-          label: "Dans le futur",
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          borderWidth: 2,
-          backgroundColor: "transparent",
-          borderColor: "rgba(50, 220, 226, 0.7)",
-          pointBackgroundColor: "#fff",
-          pointBorderColor: "rgba(50, 220, 226, 0.7)",
-          pointHoverBackgroundColor: "rgba(50, 220, 226, 0.7)",
-          pointHoverBorderColor: "rgba(50, 200, 226, 0.7)",
-          data: [
-            ...Array(
-              ES.length +
-                valeurs.length +
-                meToday.length +
-                COM.length +
-                CONFIANCE.length +
-                CONFLIT.length +
-                RESILIENCE.length +
-                VOUSMEME.length
-            ).fill(Number.NaN),
-            ...FUTUR,
-            ...Array(meToday.length).fill(Number.NaN),
-          ],
+          pointBackgroundColor: "#1E90FF",
+          pointHoverBackgroundColor: "#1E90FF",
+          pointHoverBorderColor: "#1E90FF",
+          data: fullNewPeriodData,
         },
       ],
     };
-    setChartData2(formattedData);
+
+    setChartData(formattedData);
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    getUserTestDates(userId);
+  }, [userId]);
 
-  return { chartData2 };
+  useEffect(() => {
+    fetchData();
+  }, [userId, date2]);
+
+  return { chartData, loading, testData, testDates, setDate, setDate2 }; // Return testDates to use in other components
 };
 
-export default UseChartData2;
+export default UseChartData;

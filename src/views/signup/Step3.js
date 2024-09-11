@@ -23,7 +23,14 @@ const Step3 = ({ formData, setFormData, handleNext, handlePrev }) => {
       <Row className="mb-3">
         <Col md={12}>
           <Form.Group controlId="password">
-            <Form.Label>Mot de passe</Form.Label>
+            <Form.Label
+              style={{
+                fontWeight: "bolder",
+                color: "#000",
+                fontFamily: "Montserrat",
+              }}>
+              Mot de passe
+            </Form.Label>
             <InputGroup>
               <Form.Control
                 type={showPassword ? "text" : "password"}
@@ -34,7 +41,20 @@ const Step3 = ({ formData, setFormData, handleNext, handlePrev }) => {
               />
               <InputGroup.Text
                 onClick={togglePasswordVisibility}
-                style={{ cursor: "pointer" }}>
+                style={{
+                  cursor: "pointer",
+                  backgroundColor: "rgba(206, 145, 54, 0.36)",
+                  border: "none",
+                  borderRadius: "5px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "#CE9136",
+                  height: "40px",
+                  width: "40px",
+                  alignSelf: "flex-end",
+                  marginLeft: 6,
+                }}>
                 <i
                   className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
                 />
@@ -46,8 +66,15 @@ const Step3 = ({ formData, setFormData, handleNext, handlePrev }) => {
 
       <Row className="mb-3">
         <Col md={12}>
-          <Form.Group controlId="passwordConfirm">
-            <Form.Label>Confirmez le mot de passe</Form.Label>
+          <Form.Group controlId="passwordConfirm" style={{}}>
+            <Form.Label
+              style={{
+                fontWeight: "bolder",
+                color: "#000",
+                fontFamily: "Montserrat",
+              }}>
+              Confirmez le mot de passe
+            </Form.Label>
             <InputGroup>
               <Form.Control
                 type={showConfirmPassword ? "text" : "password"}
@@ -58,7 +85,20 @@ const Step3 = ({ formData, setFormData, handleNext, handlePrev }) => {
               />
               <InputGroup.Text
                 onClick={toggleConfirmPasswordVisibility}
-                style={{ cursor: "pointer" }}>
+                style={{
+                  cursor: "pointer",
+                  backgroundColor: "rgba(206, 145, 54, 0.36)",
+                  border: "none",
+                  borderRadius: "5px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "#CE9136",
+                  height: "40px",
+                  width: "40px",
+                  alignSelf: "flex-end",
+                  marginLeft: 6,
+                }}>
                 <i
                   className={`fa ${
                     showConfirmPassword ? "fa-eye-slash" : "fa-eye"

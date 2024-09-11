@@ -35,7 +35,7 @@ const UserNavbar = ({}) => {
 
   return (
     <Navbar style={styles.customNavbar} expand="lg">
-      <Container fluid>
+      <Container fluid style={{ padding: 0, paddingLeft: 20 }}>
         <img
           src={require("../../assets/img/logo_lts.png")}
           alt="Logo"

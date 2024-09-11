@@ -14,11 +14,12 @@ const UseChartData = () => {
   const [chartData, setChartData] = useState(null);
   const [categoriesData, setCategoriesData] = useState([]);
   const [date, setDate] = useState(null);
+  const [date2, setDate2] = useState(null);
   const [userId, setUserId] = useState(null);
   const [LeaderShip, setLeaderShip] = useState(null);
   const [loading, setLoading] = useState(false);
   const [testData, setTestData] = useState(null);
-  const [testDates, setTestDates] = useState([]); // State to store test dates
+  const [testDates, setTestDates] = useState([]);
 
   const location = useLocation();
   const userIdStorage = localStorage.getItem("userIdStorage");
@@ -160,10 +161,57 @@ const UseChartData = () => {
     }
   };
 
+  const getUserLastTests = async (userId, filterDate = null) => {
+    try {
+      const userTestsRef = collection(db, "UserTests");
+      let q = null;
+      if (role === "candidate") {
+        if (testDates?.[testDates?.length - 1]) {
+          q = query(
+            userTestsRef,
+            where("userId", "==", userId),
+            where("testDate", "==", testDates?.[testDates?.length - 1]),
+            where("sharedState", "==", true)
+          );
+        } else {
+          q = query(
+            userTestsRef,
+            where("userId", "==", userId),
+            where("sharedState", "==", true)
+          );
+        }
+      } else {
+        if (testDates?.[testDates?.length - 1]) {
+          q = query(
+            userTestsRef,
+            where("userId", "==", userId),
+            where("testDate", "==", testDates?.[testDates?.length - 1])
+          );
+        } else {
+          q = query(userTestsRef, where("userId", "==", userId));
+        }
+      }
+
+      const querySnapshot = await getDocs(q);
+      const userTests = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      if (userTests?.length === 0) {
+        return [];
+      }
+
+      /*       setTestData(userTests); */
+      return userTests;
+    } catch (error) {
+      console.error("Error fetching UserTests: ", error);
+      return [];
+    }
+  };
   const getUserTestsByUserId = async (userId, filterDate = null) => {
     try {
       const userTestsRef = collection(db, "UserTests");
-      console.log(" *** date ***", date);
       let q = null;
       if (role === "candidate") {
         if (date) {
@@ -231,7 +279,6 @@ const UseChartData = () => {
     try {
       setLoading(true);
       const userTests = await getUserTestsByUserId(userId);
-
       const testsWithCategories = await Promise.all(
         userTests.map(async (userTest) => {
           const categories = await getCategoriesByTestId(userTest.testId);
@@ -248,6 +295,33 @@ const UseChartData = () => {
       setLoading(false);
     }
   };
+  const getUserLastTestsAndCategories = async (userId) => {
+    try {
+      setLoading(true);
+      const userLastTests = await getUserLastTests(userId);
+      const testsWithCategories = await Promise.all(
+        userLastTests.map(async (userTest) => {
+          const categories = await getCategoriesByTestId(userTest.testId);
+          return {
+            ...userTest,
+            categories,
+          };
+        })
+      );
+      setLoading(false);
+      return testsWithCategories;
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  function extraireAnnee(dateStr) {
+    // Créer un objet Date à partir de la chaîne de caractères
+    const dateObj = new Date(dateStr);
+    // Extraire et retourner l'année
+    return dateObj.getFullYear();
+  }
 
   const fetchData = async () => {
     let period1 = [];
@@ -257,9 +331,7 @@ const UseChartData = () => {
     if (result?.length === 0) return;
     const getResponsesByCategoryIdAndDate = (dataObj, categoryId) => {
       if (!!!dataObj) return;
-      /*       const testDateFormatted = formatDate(testDate);
-       */ const result = {};
-
+      const result = {};
       // Trouve la catégorie spécifique par categoryId
       const category = dataObj.categories.find(
         (cat) => cat.category === categoryId
@@ -273,6 +345,7 @@ const UseChartData = () => {
         result.userId = dataObj.userId;
         result.testDate = dataObj.testDate;
         result.sharedState = dataObj.sharedState;
+        result.sharedDate = dataObj.sharedDate;
       }
 
       return result;
@@ -287,24 +360,41 @@ const UseChartData = () => {
       return acc.concat(responses || []);
     }, []);
 
-    /* if (!result?.[1]) {
-      period2 = categoryIds.reduce((acc, categoryId) => {
-        const responses = getResponsesByCategoryIdAndDate(
-          result?.[1],
-          categoryId
-        )?.responses;
-        return acc.concat(responses || []);
-      }, []);
-      return console.log(" *** period2 ***", JSON.stringify(result, null, 2));
-    }
- */
-    /*   const newPeriodData = [
-      7, 6, 5, 4, 8, 9, 2, 7, 5, 6, 3, 8, 9, 4, 5, 3, 6, 8, 7, 5, 4, 3, 8, 7, 6,
-      4, 5, 3, 7, 8, 9, 2, 6, 5, 3, 7, 8, 4, 6, 3, 9, 5, 8, 7, 6, 4, 3, 8, 9, 2,
-      6, 5, 3, 7, 8, 4, 6, 3, 9, 5, 8, 7, 6, 4, 3, 8, 9, 2, 6, 5, 3, 7, 8, 4, 6,
-      3, 9, 5, 8, 7, 6, 4, 3, 8, 9, 2, 6, 5, 3, 7, 8, 4, 6, 3, 9, 5,
-    ];
- */
+    /* period 2 */
+
+    const result2 = await getUserLastTestsAndCategories(userId);
+    if (result2?.length === 0) return;
+    const getResponsesByCategoryIdAndDate2 = (dataObj, categoryId) => {
+      if (!!!dataObj) return;
+      const result2 = {};
+      // Trouve la catégorie spécifique par categoryId
+      const category = dataObj.categories.find(
+        (cat) => cat.category === categoryId
+      );
+      if (category) {
+        // Extrait les réponses de la catégorie
+        result2.responses = category.responses.map(
+          (response) => response.response
+        );
+        result2.testId = dataObj.testId;
+        result2.userId = dataObj.userId;
+        result2.testDate = dataObj.testDate;
+        result2.sharedState = dataObj.sharedState;
+        result2.sharedDate = dataObj.sharedDate;
+      }
+
+      return result2;
+    };
+
+    // Itération sur les ID pour obtenir les réponses
+    period2 = categoryIds.reduce((acc, categoryId) => {
+      const responses = getResponsesByCategoryIdAndDate2(
+        result2?.[0],
+        categoryId
+      )?.responses;
+      return acc.concat(responses || []);
+    }, []);
+
     // Ensure the combined data has the correct length
     const fullDataLength = labels.length;
     const fullData = Array(fullDataLength).fill(null);
@@ -317,6 +407,9 @@ const UseChartData = () => {
     for (let i = 0; i < period2.length; i++) {
       fullNewPeriodData[i] = period2[i];
     }
+
+    console.log(" *** fullNewPeriodData ***", result2?.[0]?.testDate);
+    const annee = extraireAnnee(result2?.[0]?.testDate);
 
     const formattedData = {
       labels: labels,
@@ -333,7 +426,7 @@ const UseChartData = () => {
           labelVA,
         },
         {
-          label: "Vous 2023",
+          label: `Vous ${annee}`,
           backgroundColor: "rgba(50, 150, 226, 0.1)",
           borderColor: "#0d47a1",
           borderWidth: 2,
@@ -349,11 +442,14 @@ const UseChartData = () => {
   };
 
   useEffect(() => {
-    fetchData();
     getUserTestDates(userId);
-  }, [userId, date]);
+  }, [userId]);
 
-  return { chartData, loading, testData, testDates, setDate }; // Return testDates to use in other components
+  useEffect(() => {
+    fetchData();
+  }, [userId, date, date2]);
+
+  return { chartData, loading, testData, testDates, setDate, setDate2 }; // Return testDates to use in other components
 };
 
 export default UseChartData;

@@ -1,0 +1,17 @@
+.welcome-modal .modal-dialog {
+  margin: 0; /* Supprime la marge par défaut autour de la modal */
+  max-width: 100%; /* Utilise toute la largeur disponible */
+  width: 100%; /* Assure que la modal prend toute la largeur */
+}
+
+.full-height-modal {
+  height: 100vh; /* Modal occupe toute la hauteur de la fenêtre */
+  display: flex;
+  align-items: center;
+  overflow: hidden; /* Empêche le débordement de la modal */
+}
+
+.full-height-modal .modal-body {
+  max-height: 100vh; /* Assure que le contenu s'adapte à la hauteur de la fenêtre */
+  overflow-y: auto; /* Permet un défilement interne si nécessaire */
+}

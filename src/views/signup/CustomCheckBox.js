@@ -13,7 +13,14 @@ const CustomCheckbox = ({ label, id, value, checked, onChange }) => {
         onChange={onChange}
         className="custom-checkbox-input"
       />
-      <label htmlFor={id} className="custom-checkbox-label">
+      <label
+        htmlFor={id}
+        className="custom-checkbox-label"
+        style={{
+          fontWeight: "bolder",
+          color: "#000",
+          fontFamily: "Montserrat",
+        }}>
         <span className={`checkmark ${checked ? "checked" : ""}`}>
           {checked && <i className="fas fa-check"></i>}
         </span>
