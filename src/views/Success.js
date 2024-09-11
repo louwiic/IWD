@@ -5,16 +5,16 @@ import { useHistory } from "react-router-dom";
 const SuccessModal = ({ show, onHide }) => {
   const history = useHistory();
 
-  useEffect(() => {
-    if (show) {
-      const timer = setTimeout(() => {
-        onHide();
-        history.push("/user/home");
-      }, 3000); // Redirection après 3 secondes
-
-      return () => clearTimeout(timer);
-    }
-  }, [show, onHide, history]);
+  /*   useEffect(() => {
+      if (show) {
+        const timer = setTimeout(() => {
+          onHide();
+          history.push("/user/home");
+        }, 3000); // Redirection après 3 secondes
+  
+        return () => clearTimeout(timer);
+      }
+    }, [show, onHide, history]); */
 
   return (
     <Modal show={show} onHide={onHide}>
@@ -23,8 +23,8 @@ const SuccessModal = ({ show, onHide }) => {
       </Modal.Header>
       <Modal.Body>
         <p>
-          Merci d'avoir répondu à ce questionnaire. Vos résultats vous seront
-          prochainement débrifé avec votre coach
+          Merci d'avoir participé à ce questionnaire/d'avoir répondu à ce questionnaire.
+          Vos résultats vous seront prochainement débrifé avec votre coach
         </p>
       </Modal.Body>
       <Modal.Footer>

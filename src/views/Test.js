@@ -183,6 +183,9 @@ const Test = () => {
     }
   };
 
+  useEffect(() => {
+    setShowSuccessModal(true);
+  }, [])
   const handleNext = () => {
     const currentQuestions = categories[currentCategoryIndex]?.questions || [];
     const allAnswered = currentQuestions.every(
@@ -200,7 +203,7 @@ const Test = () => {
     if (currentCategoryIndex < categories.length - 1) {
       setCurrentCategoryIndex(currentCategoryIndex + 1);
     } else {
-      history.push("/user/test");
+      /* history.push("/user/home"); */
       setShowSuccessModal(true); // Show success modal
     }
   };
