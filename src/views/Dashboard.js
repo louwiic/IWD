@@ -515,6 +515,24 @@ const DashboardForward = React.forwardRef((props, ref) => {
           </Button>
         </Col>
         <Row>
+          {role === "admin" && (
+            <Col md={4} style={{ marginBottom: 20 }}>
+              <Button
+                variant="secondary"
+                onClick={handleSendTest}
+                style={{
+                  width: "100%",
+                  borderColor: "#ce9136",
+                  color: "#ce9136",
+                  fontFamily: "Montserrat",
+                }}>
+                {userInfos?.newTestSended
+                  ? `Test envoyé le ${formatISODate(userInfos?.newTestSended)}`
+                  : "Débloquer le questionnaire"}
+              </Button>
+            </Col>
+          )}
+          {/* */}
           {testDates?.length > 0 && (
             <Col md={4} style={{ marginBottom: 20 }}>
               <Form.Select
@@ -544,8 +562,8 @@ const DashboardForward = React.forwardRef((props, ref) => {
           <span>
             {testDates?.length > 0
               ? new Date(
-                  Math.max(...testDates.map((date) => new Date(date)))
-                ).toLocaleDateString()
+                Math.max(...testDates.map((date) => new Date(date)))
+              ).toLocaleDateString()
               : "-"}
           </span>
         </div>
@@ -555,13 +573,7 @@ const DashboardForward = React.forwardRef((props, ref) => {
               <Card style={{ borderRadius: "4px" }}>
                 <Card.Body>
                   <span>
-                    {/*  {userInfos?.lastName} {userInfos?.firstName} n'a pas encore
-                    passé de test ou vos tests n'ont pas été partagés */}
-                    {role === "admin"
-                      ? unlocked || userInfos?.newTestSended
-                        ? "Le questionnaire a été débloqué. Les résultats seront visibles une fois que le candidat l'aura complété"
-                        : "Pour visualiser les résultats, veuillez d'abord débloquer le questionnaire afin qu'il puisse être rempli par le candidat"
-                      : "Les résultats de ce test n'ont pas encore été débriéfés. Votre coach prendra contact avec vous pour votre session de restitution."}
+                    {userInfos?.firstName} {userInfos?.lastName} vous n'avez pas encore débloquer le questionnaire !!
                   </span>
                 </Card.Body>
               </Card>
@@ -574,10 +586,10 @@ const DashboardForward = React.forwardRef((props, ref) => {
                   ...(isPrinting
                     ? {}
                     : {
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }),
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }),
                 }}>
                 <Card.Body>
                   <div

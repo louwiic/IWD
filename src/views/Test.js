@@ -234,7 +234,7 @@ const Test = () => {
           <Card style={{ borderRadius: "4px" }}>
             <Card.Body>
               <span>
-                Votre coach va vous autoriser l'accès au questionnaire.
+                Votre coach va vous autoriser l'accès au questionnaire
               </span>
             </Card.Body>
           </Card>
