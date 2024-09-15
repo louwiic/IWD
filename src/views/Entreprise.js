@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom"; // Importez useHistory
 import {
   Container,
   Row,
@@ -9,10 +10,6 @@ import {
   Button,
   Toast,
 } from "react-bootstrap";
-const logo = require("../assets/sphera.png");
-const entreprise_icon = require("../assets/icon_entreprise_marron.png");
-const remove_icon = require("../assets/remove.png");
-import "../css/EntreprisePage.css";
 import {
   doc,
   setDoc,
@@ -25,6 +22,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import ConfirmDeleteModal from "components/ConfirmDeleteModal";
+import "../css/EntreprisePage.css";
+
+const logo = require("../assets/sphera.png");
+const entreprise_icon = require("../assets/icon_entreprise_marron.png");
+const remove_icon = require("../assets/remove.png");
 
 const CustomSwitch = ({ companyId, isActive, showNotification }) => {
   const [isOn, setIsOn] = useState(isActive);
@@ -59,11 +61,12 @@ const CustomSwitch = ({ companyId, isActive, showNotification }) => {
 };
 
 const Entreprise = () => {
+  const history = useHistory(); // Initialisez useHistory
   const [formData, setFormData] = useState({ companyName: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [companies, setCompanies] = useState([]);
-  const [filteredCompanies, setFilteredCompanies] = useState([]); // Nouvel état pour les entreprises filtrées
+  const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
@@ -77,13 +80,27 @@ const Entreprise = () => {
 
   const fetchCompanies = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "companies"));
-      const companyList = querySnapshot.docs.map((doc) => ({
+      const companyQuerySnapshot = await getDocs(collection(db, "companies"));
+      const companyList = companyQuerySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setCompanies(companyList);
-      setFilteredCompanies(companyList); // Initialiser les entreprises filtrées avec la liste complète
+
+      // Récupération du nombre de participants pour chaque entreprise
+      const updatedCompanyList = await Promise.all(
+        companyList.map(async (company) => {
+          const participantsSnapshot = await getDocs(
+            query(collection(db, "users"), where("company", "==", company.id))
+          );
+          return {
+            ...company,
+            participants: participantsSnapshot.size,
+          };
+        })
+      );
+
+      setCompanies(updatedCompanyList);
+      setFilteredCompanies(updatedCompanyList);
     } catch (error) {
       console.error(
         "Erreur lors de la récupération des entreprises :",
@@ -124,7 +141,10 @@ const Entreprise = () => {
         setFormData({ companyName: "" });
         fetchCompanies(); // Rafraîchir la liste des entreprises
       } catch (error) {
-        console.error("Error creating company:", error.message);
+        console.error(
+          "Erreur lors de la création de l'entreprise :",
+          error.message
+        );
         showNotification(
           `Erreur lors de la création de l'entreprise : ${error.message}`,
           "danger"
@@ -156,7 +176,7 @@ const Entreprise = () => {
     try {
       await deleteDoc(doc(db, "companies", selectedCompany.id));
       showNotification("Entreprise supprimée avec succès !", "success");
-      fetchCompanies(); // Rafraîchir la liste des entreprises après suppression
+      fetchCompanies();
       setShowDeleteModal(false);
     } catch (error) {
       console.error(
@@ -196,10 +216,40 @@ const Entreprise = () => {
         ...doc.data(),
       }));
 
-      setFilteredCompanies(companyResults);
+      // Mise à jour du nombre de participants pour les résultats filtrés
+      const updatedCompanyResults = await Promise.all(
+        companyResults.map(async (company) => {
+          const participantsSnapshot = await getDocs(
+            query(collection(db, "users"), where("company", "==", company.id))
+          );
+          return {
+            ...company,
+            participants: participantsSnapshot.size,
+          };
+        })
+      );
+
+      setFilteredCompanies(updatedCompanyResults);
     } catch (error) {
-      console.error("Error searching companies: ", error);
+      console.error(
+        "Erreur lors de la recherche des entreprises :",
+        error.message
+      );
     }
+  };
+
+  // Fonction pour vérifier la validité de la date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "-";
+    }
+    return date.toLocaleDateString();
+  };
+
+  // Fonction pour gérer le clic sur l'icône de l'entreprise
+  const handleIconClick = (companyId) => {
+    history.push(`/admin/entreprise/users?companyId=${companyId}`);
   };
 
   return (
@@ -303,7 +353,14 @@ const Entreprise = () => {
                   {filteredCompanies.map((company) => (
                     <tr key={company.id}>
                       <td className="text-center align-middle">
-                        <span className="img-content">
+                        <span
+                          className="img-content"
+                          onClick={() => handleIconClick(company.id)} // Ajoutez l'événement de clic
+                          style={{
+                            cursor: "pointer",
+                            padding: "5px",
+                            borderRadius: "5px",
+                          }}>
                           <img
                             src={entreprise_icon}
                             alt="entreprise_icon"
@@ -312,9 +369,7 @@ const Entreprise = () => {
                         </span>
                       </td>
                       <td>{company.companyName}</td>
-                      <td>
-                        {new Date(company.createdAt).toLocaleDateString()}
-                      </td>
+                      <td>{formatDate(company.createdAt)}</td>
                       <td>
                         <CustomSwitch
                           companyId={company.id}

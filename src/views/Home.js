@@ -180,7 +180,7 @@ const Dashboard = () => {
             <img src={book} alt="book" className="icon" />
             <div>
               <span className="title-kpi">
-                Derniers tests réalisés cette{" "}
+                Dernières inscriptions réalisées cette{" "}
                 <span style={{ color: "#CE9136" }}>semaine</span>
               </span>
             </div>
@@ -282,7 +282,7 @@ const Dashboard = () => {
                   style={{ height: 45 }}
                 />
                 <Card.Text>
-                  <h1 className="title">Test terminé aujourd'hui</h1>
+                  <h1 className="title">Dernier questionnaire complété</h1>
                 </Card.Text>
               </div>
               {todayTestUser ? (

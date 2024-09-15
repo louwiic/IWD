@@ -17,6 +17,7 @@ import PrivateRoute from "./components/privateRoute";
 import SignupPage from "views/SignupPage";
 import User from "layouts/User";
 import MultiStepForm from "views/signup/SignupMultiStep";
+import ForgotPwd from "views/ForgotPwd";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -25,6 +26,7 @@ root.render(
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/signup" component={MultiStepForm} />
+      <Route path="/forgotpwd" component={ForgotPwd} />
       <PrivateRoute
         path="/admin"
         component={AdminLayout}

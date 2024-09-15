@@ -23,8 +23,8 @@ const SuccessModal = ({ show, onHide }) => {
       </Modal.Header>
       <Modal.Body>
         <p>
-          Le questionnaire a été terminé avec succès. Vous allez être redirigé
-          vers votre page utilisateur.
+          Merci d'avoir répondu à ce questionnaire. Vos résultats vous seront
+          prochainement débrifé avec votre coach
         </p>
       </Modal.Body>
       <Modal.Footer>
@@ -32,7 +32,7 @@ const SuccessModal = ({ show, onHide }) => {
           variant="primary"
           onClick={() => {
             onHide();
-            history.push("/user");
+            history.push("/user/test");
           }}>
           OK
         </Button>

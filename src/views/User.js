@@ -246,12 +246,16 @@ const User = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
+
     if (!searchQuery.trim()) {
       setFilteredUsers(users);
       return;
     }
-    const queryText = searchQuery.toLowerCase();
+
+    const queryText = searchQuery; // searchQuery.toLowerCase();
+
     try {
+      // Requêtes de recherche insensibles à la casse
       const lastNameQuery = query(
         collection(db, "users"),
         where("lastName", ">=", queryText),

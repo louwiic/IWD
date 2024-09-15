@@ -167,7 +167,7 @@ const Test = () => {
     if (currentCategoryIndex < categories.length - 1) {
       setCurrentCategoryIndex(currentCategoryIndex + 1);
     } else {
-      history.push("/user/home");
+      history.push("/user/test");
       setShowSuccessModal(true); // Show success modal
     }
   };
@@ -185,8 +185,7 @@ const Test = () => {
           <Card style={{ borderRadius: "4px" }}>
             <Card.Body>
               <span>
-                Vous n'avez pas encore reçu de test à passer (recharger la page
-                si un nouveau test viens de vous êtes envoyé)
+                Votre coach va vous autoriser l'accès au questionnaire.
               </span>
             </Card.Body>
           </Card>

@@ -457,7 +457,7 @@ const DashboardForward = React.forwardRef((props, ref) => {
                 }}>
                 {userInfos?.newTestSended
                   ? `Test envoyé le ${formatISODate(userInfos?.newTestSended)}`
-                  : "Envoyer un nouveaut test"}
+                  : "Débloquer le questionnaire"}
               </Button>
             </Col>
           )}
@@ -490,8 +490,9 @@ const DashboardForward = React.forwardRef((props, ref) => {
               <Card style={{ borderRadius: "4px" }}>
                 <Card.Body>
                   <span>
-                    {userInfos?.lastName} {userInfos?.firstName} n'a pas encore
-                    passé de test ou vos tests n'ont pas été partagés
+                    {/*  {userInfos?.lastName} {userInfos?.firstName} n'a pas encore
+                    passé de test ou vos tests n'ont pas été partagés */}
+                    Les résultats de ce test n’ont pas encore été révélés.
                   </span>
                 </Card.Body>
               </Card>

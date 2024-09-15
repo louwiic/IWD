@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Row, Col, Form, Button, Toast } from "react-bootstrap";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import "../css/loginPage.css";
 import { doc, getDoc } from "firebase/firestore";
@@ -56,8 +60,8 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
     }
   };
 
-  const handleForgotPassword = () => {
-    // Logique de récupération de mot de passe
+  const handleForgotPassword = async () => {
+    history.push("/forgotpwd");
   };
 
   return (
@@ -79,7 +83,7 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
       <Col md={8} className="d-flex align-items-center justify-content-center">
         <div className="w-75 login-form-container">
           <h1>Bienvenue</h1>
-          <p className="info-text">Je n’ai pas encore de compte</p>
+          <p className="info-text">Merci de participer au questionnaire LTS.</p>
           <p className="subtext">
             Vous devez créer votre compte personnel à l’aide d’un login et d’un
             mot de passe de votre choix. Assurez-vous de sauvegarder vos
@@ -101,7 +105,7 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
           </div>
           <Form onSubmit={handleLogin} className="mt-5">
             <Form.Group>
-              <Form.Label>Nom d’utilisateur</Form.Label>
+              <Form.Label>Nom d’utilisateur (identifiants)</Form.Label>
               <Form.Control
                 placeholder="Nom d’utilisateur"
                 type="text"
@@ -119,11 +123,17 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
               />
             </Form.Group>
             <Button
-              className="btn-fill mt-3   btn-primary-border"
+              className="btn-fill mt-3 btn-primary-border"
               type="submit"
               disabled={isLoading}>
               {isLoading ? "Chargement..." : "Se connecter"}
             </Button>
+            {/* Ajout du lien "Mot de passe oublié ?" */}
+            <div className="mt-3 text-center">
+              <Button variant="link" onClick={handleForgotPassword}>
+                Mot de passe oublié ?
+              </Button>
+            </div>
           </Form>
         </div>
       </Col>
