@@ -18,10 +18,11 @@ const styles = {
     color: "#fff",
     display: "flex",
     alignItems: "center",
+    marginLeft: "20px",
   },
   logo: {
     height: "40px",
-    marginRight: "20px",
+    marginRight: "40px",
   },
 };
 
@@ -30,6 +31,8 @@ const UserNavbar = ({}) => {
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem("authToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userIdStorage");
     history.push("/login");
   };
 
@@ -46,7 +49,7 @@ const UserNavbar = ({}) => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mr-auto">
             {routes.map((prop, key) => {
-              if (prop.layout === "/user") {
+              if (prop.layout === "/user" && prop?.display) {
                 return (
                   <Nav.Link
                     as={Link}

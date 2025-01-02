@@ -9,6 +9,9 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
+import { formatFirestoreDate } from "views/Dashboard";
+import { formatISODate } from "views/Dashboard";
+import { categoryOrderWithIds } from "views/Test";
 
 const UseChartData = () => {
   const [chartData, setChartData] = useState(null);
@@ -135,15 +138,15 @@ const UseChartData = () => {
   ];
 
   const categoryIds = [
-    "4jx2EMzabASVxfbKBKxQ", // Leadership
-    "Kn1O3C6oUTXlgyWn5utY", // Valeurs
-    "M1zQrDhFj0LYbyYVCs1H", // Etat d'esprit
-    "u18ckyczskXpvLmQ9wCV", // Communication
-    "yz0kVA4XJ1Ivd1eFmIHZ", // Confiance
-    "rYbeaMIQuKar27QYsXVG", // Conflit
-    "yyZWreYDX93rPRnjIkwh", // Résilience
-    "wClgeAd1l2hqzfw5l4aV", // Vous-même
-    "PC6KaYF98rIsfNwH2FTC", // Dans le futur
+    "4jx2EMzabASVxfbKBKxQ",
+    "Kn1O3C6oUTXlgyWn5utY",
+    "M1zQrDhFj0LYbyYVCs1H",
+    "u18ckyczskXpvLmQ9wCV",
+    "yz0kVA4XJ1Ivd1eFmIHZ",
+    "rYbeaMIQuKar27QYsXVG",
+    "yyZWreYDX93rPRnjIkwh",
+    "wClgeAd1l2hqzfw5l4aV",
+    "PC6KaYF98rIsfNwH2FTC",
   ];
 
   // Fonction pour récupérer les dates des tests de l'utilisateur
@@ -324,6 +327,7 @@ const UseChartData = () => {
   }
 
   const fetchData = async () => {
+    let questions = [];
     let period1 = [];
     let period2 = [];
 
@@ -352,6 +356,19 @@ const UseChartData = () => {
     };
 
     // Itération sur les ID pour obtenir les réponses
+    questions = categoryOrderWithIds
+      .map((categoryOrder) => {
+        const categoryData = result?.[0]?.categories?.find(
+          (cat) => cat.category === categoryOrder.id
+        );
+        return (
+          categoryData?.responses.map((response) => response.question) || []
+        );
+      })
+      .flat();
+
+    console.log("questions ", questions);
+
     period1 = categoryIds.reduce((acc, categoryId) => {
       const responses = getResponsesByCategoryIdAndDate(
         result?.[0],
@@ -408,8 +425,8 @@ const UseChartData = () => {
       fullNewPeriodData[i] = period2[i];
     }
 
-    console.log(" *** fullNewPeriodData ***", result2?.[0]?.testDate);
-    const annee = extraireAnnee(result2?.[0]?.testDate);
+    const annee1 = formatISODate(result?.[0]?.testDate);
+    const annee = formatISODate(result2?.[0]?.testDate);
 
     const formattedData = {
       labels: labels,
@@ -424,17 +441,22 @@ const UseChartData = () => {
           pointHoverBorderColor: "#424242",
           data: fullData,
           labelVA,
+          questions,
         },
-        {
-          label: `Vous ${annee}`,
-          backgroundColor: "rgba(50, 150, 226, 0.1)",
-          borderColor: "#0d47a1",
-          borderWidth: 2,
-          pointBackgroundColor: "#1E90FF",
-          pointHoverBackgroundColor: "#1E90FF",
-          pointHoverBorderColor: "#1E90FF",
-          data: fullNewPeriodData,
-        },
+        ...(testDates.length > 1
+          ? [
+              {
+                label: `Vous ${annee}`,
+                backgroundColor: "rgba(50, 150, 226, 0.1)",
+                borderColor: "#0d47a1",
+                borderWidth: 2,
+                pointBackgroundColor: "#1E90FF",
+                pointHoverBackgroundColor: "#1E90FF",
+                pointHoverBorderColor: "#1E90FF",
+                data: fullNewPeriodData,
+              },
+            ]
+          : []),
       ],
     };
 

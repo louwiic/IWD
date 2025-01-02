@@ -19,7 +19,6 @@ import React from "react";
 import { useLocation, Route, Switch } from "react-router-dom";
 import UserNavbar from "components/Navbars/UserNavbar";
 import Footer from "components/Footer/Footer";
-import FixedPlugin from "components/FixedPlugin/FixedPlugin.js";
 import routes from "routes.js";
 
 function Admin() {

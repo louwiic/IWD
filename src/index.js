@@ -18,6 +18,8 @@ import SignupPage from "views/SignupPage";
 import User from "layouts/User";
 import MultiStepForm from "views/signup/SignupMultiStep";
 import ForgotPwd from "views/ForgotPwd";
+import UnlockPage from "views/UnlockPage";
+import Dashboard from "views/Dashboard";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -27,6 +29,8 @@ root.render(
       <Route path="/login" component={Login} />
       <Route path="/signup" component={MultiStepForm} />
       <Route path="/forgotpwd" component={ForgotPwd} />
+      <Route path="/unlock" component={UnlockPage} />
+      <Route path="/result" component={Dashboard} />
       <PrivateRoute
         path="/admin"
         component={AdminLayout}

@@ -56,4 +56,13 @@ body {
     border-color: #ce9136;
   }
   
-  
+  .category-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .move-button {
+    padding: 2px 8px;
+    margin: 0 2px;
+  }

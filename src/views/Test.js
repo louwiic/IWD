@@ -23,6 +23,21 @@ import "../css/Test.css";
 import SuccessModal from "../views/Success";
 import WelcomeModal from "./WelcomeModal";
 
+export const categoryOrderWithIds = [
+  {
+    id: "4jx2EMzabASVxfbKBKxQ",
+    categorie: "Votre Leadership Aujourd'hui",
+  },
+  { id: "Kn1O3C6oUTXlgyWn5utY", categorie: "Vos valeurs" },
+  { id: "M1zQrDhFj0LYbyYVCs1H", categorie: "État d'esprit" },
+  { id: "u18ckyczskXpvLmQ9wCV", categorie: "Communication" },
+  { id: "yz0kVA4XJ1Ivd1eFmIHZ", categorie: "Confiance" },
+  { id: "rYbeaMIQuKar27QYsXVG", categorie: "Conflit" },
+  { id: "yyZWreYDX93rPRnjIkwh", categorie: "Résilience" },
+  { id: "wClgeAd1l2hqzfw5l4aV", categorie: "Vous-même, aujourd'hui" },
+  { id: "PC6KaYF98rIsfNwH2FTC", categorie: "Dans le futur" },
+];
+
 const Test = () => {
   const [categories, setCategories] = useState([]);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -37,11 +52,29 @@ const Test = () => {
   const fetchQuestions = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "questions"));
-      const questionsData = querySnapshot.docs.map((doc) => ({
+      let questionsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setCategories(questionsData);
+
+      // Définir l'ordre exact des catégories avec leurs IDs
+
+      // Créer un objet de mapping pour le nouvel ordre
+      const orderMapping = {};
+      categoryOrderWithIds.forEach((item, index) => {
+        orderMapping[item.id] = index;
+      });
+
+      // Mettre à jour l'ordre dans les données en utilisant l'ID
+      questionsData = questionsData.map((question) => ({
+        ...question,
+        ordre: orderMapping[question.id],
+      }));
+
+      // Trier les questions selon le nouvel ordre
+      const sortedQuestions = questionsData.sort((a, b) => a.ordre - b.ordre);
+
+      setCategories(sortedQuestions);
     } catch (error) {
       console.error("Error fetching questions: ", error);
     }
@@ -178,6 +211,19 @@ const Test = () => {
 
   const currentCategory = categories[currentCategoryIndex];
 
+  const getEvaluationTitle = (index) => {
+    switch (index) {
+      case 1:
+        return "Évaluez l'importance de ces dimensions à vos yeux";
+      case 5:
+        return "Évaluez les situations suivantes";
+      case 8:
+        return "Évaluez les affirmations suivantes";
+      default:
+        return "Évaluez les dimensions suivantes";
+    }
+  };
+
   return (
     <Container fluid>
       {!currentUser?.newTestSended ? (
@@ -207,7 +253,8 @@ const Test = () => {
                   </strong>
                 </Card.Title>
                 <Card.Title as="h4">
-                  {currentCategory?.categorie || ""}
+                  {getEvaluationTitle(currentCategoryIndex)}
+                  {/*   {currentCategory?.categorie || ""} */}
                 </Card.Title>
                 <div
                   style={{
@@ -217,7 +264,7 @@ const Test = () => {
                   }}>
                   (1 = faible à 9 = élevé)
                 </div>
-                <div
+                {/* <div
                   style={{
                     fontSize: "1rem",
                     color: "#424242",
@@ -225,7 +272,7 @@ const Test = () => {
                     marginTop: "0.5rem",
                   }}>
                   <strong>Évaluez :</strong>
-                </div>
+                </div> */}
               </Card.Header>
               <Card.Body>
                 {showAlert && (
@@ -281,12 +328,12 @@ const Test = () => {
                       ? "Terminer"
                       : "Suivant"}
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="info"
                     onClick={handleRandomize}
                     className="ml-2">
                     Randomize
-                  </Button>
+                  </Button> */}
                 </div>
               </Card.Footer>
             </Card>

@@ -23,6 +23,7 @@ import User from "views/User";
 import Entreprise from "views/Entreprise";
 import Test from "views/Test";
 import EntrepriseUser from "views/EntrepriseUser";
+import WelcomeUser from "views/WelcomeUser";
 const icon_overview = require("../src/assets/icon_overview.png");
 const icon_question = require("../src/assets/icon_question.png");
 const icon_user = require("../src/assets/icon_user.png");
@@ -61,18 +62,18 @@ const dashboardRoutes = [
     display: false,
   },
   {
-    path: "/answers",
-    name: "Questionnaire",
-    icon: icon_question,
-    component: Questions,
-    layout: "/admin",
-    display: true,
-  },
-  {
     path: "/entreprise",
     name: "Entreprises",
     icon: icon_entreprise,
     component: Entreprise,
+    layout: "/admin",
+    display: true,
+  },
+  {
+    path: "/answers",
+    name: "Questionnaire",
+    icon: icon_question,
+    component: Questions,
     layout: "/admin",
     display: true,
   },
@@ -83,7 +84,7 @@ const dashboardRoutes = [
     icon: icon_overview,
     component: Dashboard,
     layout: "/user",
-    display: false,
+    display: true,
   },
   {
     path: "/test",
@@ -91,6 +92,15 @@ const dashboardRoutes = [
     icon: icon_question,
     component: Test,
     layout: "/user",
+    display: true,
+  },
+  {
+    path: "/result",
+    name: "WelcomeUser",
+    icon: icon_question,
+    component: WelcomeUser,
+    layout: "/user",
+    display: false,
   },
 
   /*   {

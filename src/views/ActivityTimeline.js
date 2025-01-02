@@ -5,8 +5,8 @@ import "./ActivityTimeline.css";
 const ActivityTimeline = ({ activities }) => {
   return (
     <Card.Body>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <h4 className="activity-title">Dernières activités</h4>
+      <div className="activity-timeline-container">
+        <h4 className="activity-title">Historique</h4>
         <ul className="timeline">
           {activities.map((activity, index) => (
             <li key={index}>

@@ -13,6 +13,7 @@ import {
   OverlayTrigger,
   Tooltip as TooltopStrap,
   Toast,
+  Spinner,
 } from "react-bootstrap";
 import { Chart, Radar } from "react-chartjs-2";
 import {
@@ -37,6 +38,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useReactToPrint } from "react-to-print";
@@ -48,6 +50,42 @@ import ActivityTimeline from "./ActivityTimeline";
 
 ChartJS.register(LineElement, PointElement, Filler, Tooltip, Legend);
 ChartJS.register(CustomRadarController, CustomRadialLinearScale);
+
+export function formatFirestoreDate(createdAt) {
+  // Convertir le timestamp Firestore en millisecondes
+  const date = new Date(
+    createdAt.seconds * 1000 + createdAt.nanoseconds / 1000000
+  );
+
+  // Formater la date en DD/MM/YYYY
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Les mois commencent à 0
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+export function formatISODate(dateString) {
+  // Convertir la chaîne de caractères en un objet Date
+  const date = new Date(dateString);
+
+  // Formater la date en DD/MM/YYYY
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Les mois commencent à 0
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+export function formatName(firstName, lastName) {
+  // Capitaliser la première lettre du prénom et du nom
+  const formattedLastName =
+    lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
+  const formattedFirstNameInitial = firstName.charAt(0).toUpperCase();
+
+  // Combiner les deux pour obtenir le format souhaité
+  return `${formattedLastName}.${formattedFirstNameInitial}`;
+}
 
 const RadarLabel = ({ top, left, right, bottom, labelText, colorText }) => (
   <div
@@ -69,45 +107,10 @@ const RadarLabel = ({ top, left, right, bottom, labelText, colorText }) => (
   </div>
 );
 
-function formatFirestoreDate(createdAt) {
-  // Convertir le timestamp Firestore en millisecondes
-  const date = new Date(
-    createdAt.seconds * 1000 + createdAt.nanoseconds / 1000000
-  );
-
-  // Formater la date en DD/MM/YYYY
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Les mois commencent à 0
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-
-function formatISODate(dateString) {
-  // Convertir la chaîne de caractères en un objet Date
-  const date = new Date(dateString);
-
-  // Formater la date en DD/MM/YYYY
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Les mois commencent à 0
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-
-function formatName(firstName, lastName) {
-  // Capitaliser la première lettre du prénom et du nom
-  const formattedLastName =
-    lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
-  const formattedFirstNameInitial = firstName.charAt(0).toUpperCase();
-
-  // Combiner les deux pour obtenir le format souhaité
-  return `${formattedLastName}.${formattedFirstNameInitial}`;
-}
-
 const DashboardForward = React.forwardRef((props, ref) => {
   const {
-    handlePrint, // Ajout de la prop handlePrint
+    handlePrint,
+    isPrinting, // Ajoutez cette prop
   } = props;
 
   const chartRef = useRef();
@@ -121,6 +124,8 @@ const DashboardForward = React.forwardRef((props, ref) => {
   const [shared, setShared] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDate2, setSelectedDate2] = useState(null);
+  const [shareInfos, setShareInfos] = useState(null);
+  const [unlocked, setUnlocked] = useState(false);
   const { chartData, loading, testData, setDate, setDate2, testDates } =
     UseChartData();
   const role = localStorage.getItem("role");
@@ -196,20 +201,63 @@ const DashboardForward = React.forwardRef((props, ref) => {
   useEffect(() => {
     if (testData?.length > 0 && !selectedDate) {
       setSelectedDate(testData[0]?.testDate);
+      handleCheckTestIsAlreadyShared(testData[0]?.testDate);
       setDate(testData[0]?.testDate);
     }
   }, [testData]);
 
-  const handleDateChange = (e) => {
+  const handleDateChange = async (e) => {
     const newDate = e.target.value;
     setSelectedDate(newDate);
     setDate(newDate);
+    handleCheckTestIsAlreadyShared(newDate);
+  };
+
+  const handleCheckTestIsAlreadyShared = async (newDate: string) => {
+    const formattedDate = new Date(newDate).toISOString();
+
+    try {
+      const testCollection = collection(db, "UserTests");
+      // Requête pour vérifier la date et l'état de partage
+      const q = query(
+        testCollection,
+        where("testDate", "==", formattedDate),
+        where("sharedState", "==", false) // Assurez-vous que `sharedState` est le champ correct pour l'état de partage
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        let string = `Envoyer les résultats du questionnaire du ${formatISODate(
+          newDate
+        )}`;
+        return setShareInfos(string);
+      }
+      setShareInfos("Ne plus envoyer les résultats");
+    } catch (error) {
+      console.error("Error checking tests:", error);
+    }
   };
 
   const handleDateChange2 = (e) => {
     const newDate = e.target.value;
     setSelectedDate2(newDate);
     setDate2(newDate);
+  };
+
+  const fetchQuestions = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "questions"));
+      const questionsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ordre: doc.data().ordre || 0, // Ajouter un ordre par défaut
+        ...doc.data(),
+      }));
+      console.log("questionsData", questionsData);
+      // Trier les catégories par ordre
+      const sortedQuestions = questionsData.sort((a, b) => a.ordre - b.ordre);
+    } catch (error) {
+      console.error("Error fetching questions: ", error);
+    }
   };
 
   const filteredChartData = testData?.find(
@@ -222,9 +270,13 @@ const DashboardForward = React.forwardRef((props, ref) => {
       const dataIndex = context?.dataIndex;
       label += context?.raw + " : ";
 
-      const item = data?.find((d) => d.label === context.label);
-      if (item) {
-        label += item.text;
+      // Accéder aux questions depuis data.datasets[0].questions
+      const questions = data?.datasets?.[0]?.questions;
+      if (Array.isArray(questions) && questions.length > dataIndex) {
+        // Utiliser directement l'index pour accéder à la question
+        label += questions[dataIndex];
+      } else {
+        label += "Données non disponibles";
       }
 
       return label;
@@ -292,7 +344,7 @@ const DashboardForward = React.forwardRef((props, ref) => {
       },
       tooltip: {
         callbacks: {
-          label: createLabelFunction(filteredChartData),
+          label: createLabelFunction(chartData || []),
         },
         titleFont: {
           size: 16,
@@ -331,7 +383,7 @@ const DashboardForward = React.forwardRef((props, ref) => {
       });
 
       setToastVariant("success");
-      setToastMessage("La sphère a bien été partagée");
+      setToastMessage("Les résultats ont bien été partagée");
       setShowToast(true);
     } catch (error) {
       console.error("Error updating document: ", error);
@@ -350,15 +402,12 @@ const DashboardForward = React.forwardRef((props, ref) => {
         }
       }
 
-      // Référence au document de l'utilisateur dans la collection "users"
       const userRef = doc(db, "users", userInfos.id);
-
-      // Mise à jour du document avec la nouvelle propriété "newTestSended"
       await updateDoc(userRef, {
-        newTestSended: new Date().toISOString(), // Ajout ou modification de la propriété "newTestSended"
+        newTestSended: new Date().toISOString(),
       });
 
-      // Optionnel : Message de succès
+      setUnlocked(true);
       setToastVariant("success");
       setToastMessage("Le test a bien été mis à jour et envoyé.");
       setShowToast(true);
@@ -377,12 +426,15 @@ const DashboardForward = React.forwardRef((props, ref) => {
               display: "flex",
               borderRadius: 8,
               padding: 6,
-              backgroundColor: shared ? "#b0c4b1" : "#f07167",
+              backgroundColor:
+                unlocked || userInfos?.newTestSended ? "#4CAF50" : "#f07167", // Changement de couleur ici
               marginBottom: 30,
               alignSelf: "flex-start",
             }}>
             <text style={{ color: "#fff", fontSize: 14 }}>
-              {shared ? "Résultat partagé" : "Résultat non partagé"}
+              {unlocked || userInfos?.newTestSended
+                ? `Questionnaire débloqué`
+                : "Questionnaire non débloqué"}
             </text>
           </div>
         )}
@@ -404,7 +456,7 @@ const DashboardForward = React.forwardRef((props, ref) => {
           />
           <div style={{ flex: 1 }}>
             <h1 className="title">
-              {userInfos?.lastName} {userInfos?.firstName}
+              {userInfos?.firstName} {userInfos?.lastName}
             </h1>
             <span className="subtitle">Sphère représentant vos résultats</span>
           </div>
@@ -415,17 +467,36 @@ const DashboardForward = React.forwardRef((props, ref) => {
                 gap: 10,
               }}>
               <Button
+                onClick={handleShare}
                 variant="secondary"
                 style={{
                   borderRadius: 15,
                 }}>
-                <img
-                  onClick={handleShare}
+                {shareInfos && !shared && (
+                  <span style={{ marginRight: 20 }}>{shareInfos}</span>
+                )}
+                {shared && (
+                  <span style={{ marginRight: 20 }}>Résultat envoyé</span>
+                )}
+                {/*   <img
                   src={share}
                   alt="Insights"
                   className="img-fluid"
                   style={{ height: 32 }}
-                />
+                /> */}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleSendTest}
+                style={{
+                  borderRadius: 15,
+                  borderColor: "#ce9136",
+                  color: "#ce9136",
+                  fontFamily: "Montserrat",
+                }}>
+                {unlocked || userInfos?.newTestSended
+                  ? `Questionnaire débloqué`
+                  : "Débloquer un nouveau questionnaire"}
               </Button>
             </div>
           )}
@@ -444,24 +515,6 @@ const DashboardForward = React.forwardRef((props, ref) => {
           </Button>
         </Col>
         <Row>
-          {role === "admin" && (
-            <Col md={4} style={{ marginBottom: 20 }}>
-              <Button
-                variant="secondary"
-                onClick={handleSendTest}
-                style={{
-                  width: "100%",
-                  borderColor: "#ce9136",
-                  color: "#ce9136",
-                  fontFamily: "Montserrat",
-                }}>
-                {userInfos?.newTestSended
-                  ? `Test envoyé le ${formatISODate(userInfos?.newTestSended)}`
-                  : "Débloquer le questionnaire"}
-              </Button>
-            </Col>
-          )}
-          {/* */}
           {testDates?.length > 0 && (
             <Col md={4} style={{ marginBottom: 20 }}>
               <Form.Select
@@ -472,18 +525,30 @@ const DashboardForward = React.forwardRef((props, ref) => {
                   borderWidth: 2,
                   borderRadius: 4,
                 }}
-                aria-label="Sélectionnez la date du test"
+                aria-label="Sélectionnez la date du test "
                 onChange={handleDateChange}
                 value={selectedDate}>
-                {testDates?.map((date, index) => (
-                  <option key={date} value={date}>
-                    {new Date(date).toLocaleDateString()}
-                  </option>
-                ))}
+                {testDates
+                  ?.sort((a, b) => new Date(b) - new Date(a))
+                  .map((date, index) => (
+                    <option key={date} value={date}>
+                      {new Date(date).toLocaleDateString()}
+                    </option>
+                  ))}
               </Form.Select>
             </Col>
           )}
         </Row>
+        <div style={{ display: "flex", flexDirection: "row", gap: 20 }}>
+          <span>Dernière sphère:</span>
+          <span>
+            {testDates?.length > 0
+              ? new Date(
+                  Math.max(...testDates.map((date) => new Date(date)))
+                ).toLocaleDateString()
+              : "-"}
+          </span>
+        </div>
         <Row>
           {!chartData || !filteredChartData ? (
             <Col md="12">
@@ -492,14 +557,28 @@ const DashboardForward = React.forwardRef((props, ref) => {
                   <span>
                     {/*  {userInfos?.lastName} {userInfos?.firstName} n'a pas encore
                     passé de test ou vos tests n'ont pas été partagés */}
-                    Les résultats de ce test n’ont pas encore été révélés.
+                    {role === "admin"
+                      ? unlocked || userInfos?.newTestSended
+                        ? "Le questionnaire a été débloqué. Les résultats seront visibles une fois que le candidat l'aura complété"
+                        : "Pour visualiser les résultats, veuillez d'abord débloquer le questionnaire afin qu'il puisse être rempli par le candidat"
+                      : "Les résultats de ce test n'ont pas encore été débriéfés. Votre coach prendra contact avec vous pour votre session de restitution."}
                   </span>
                 </Card.Body>
               </Card>
             </Col>
           ) : (
             <Col md="12">
-              <Card style={{ borderRadius: "4px" }}>
+              <Card
+                style={{
+                  borderRadius: "4px",
+                  ...(isPrinting
+                    ? {}
+                    : {
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }),
+                }}>
                 <Card.Body>
                   <div
                     style={{
@@ -507,6 +586,9 @@ const DashboardForward = React.forwardRef((props, ref) => {
                       width: 924,
                       height: 1080,
                       paddingTop: 120,
+
+                      // Utilisez une condition pour appliquer ces styles seulement quand on n'imprime pas
+                      ...(isPrinting ? {} : {}),
                     }}>
                     <div>
                       <Chart
@@ -576,7 +658,9 @@ const DashboardForward = React.forwardRef((props, ref) => {
                   </div>
                 </Card.Body>
                 {role === "admin" && (
-                  <ActivityTimeline activities={activities} />
+                  <div style={{ alignSelf: "stretch" }}>
+                    <ActivityTimeline activities={activities} />
+                  </div>
                 )}
               </Card>
             </Col>
@@ -605,14 +689,50 @@ const DashboardForward = React.forwardRef((props, ref) => {
 
 const Dashboard = () => {
   const componentRef = useRef();
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
+    onBeforeGetContent: () => {
+      setIsPrinting(true);
+      setIsLoading(true);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          setIsLoading(false);
+          resolve();
+        }, 1300); // Réduit à 1300 ms
+      });
+    },
+    onAfterPrint: () => {
+      setIsPrinting(false);
+    },
   });
 
   return (
     <div>
-      <DashboardForward ref={componentRef} handlePrint={handlePrint} />
+      {isLoading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 9999,
+          }}>
+          <Spinner animation="border" variant="light" />
+        </div>
+      )}
+      <DashboardForward
+        ref={componentRef}
+        handlePrint={handlePrint}
+        isPrinting={isPrinting}
+      />
     </div>
   );
 };

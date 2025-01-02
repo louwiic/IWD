@@ -20,10 +20,12 @@ import {
 } from "firebase/firestore";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 const logo = require("../assets/sphera.png");
 const user_iwd = require("../assets/img/user_iwd.png");
 import "../css/userPage.css";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { formatFirestoreDate, formatISODate } from "./Dashboard";
 const remove_icon = require("../assets/remove.png");
 
 const cardBodyStyle = {
@@ -41,6 +43,7 @@ const User = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const history = useHistory();
+  const [sortOrder, setSortOrder] = useState("desc"); // 'desc' pour le plus récent d'abord
 
   /*   const updateFirestoreWithCategories = async () => {
     // Les catégories avec leurs questions
@@ -220,10 +223,21 @@ const User = () => {
           id: doc.id,
           ...doc.data(),
         }));
-        setUsers(usersData);
-        setFilteredUsers(usersData); // Initialize filtered users
+
+        // Tri des utilisateurs par date d'inscription (la plus récente d'abord)
+        const sortedUsers = usersData.sort((a, b) => {
+          return sortOrder === "desc"
+            ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
+
+        setUsers(sortedUsers);
+        setFilteredUsers(sortedUsers);
       } catch (error) {
-        console.error("Error fetching users: ", error);
+        console.error(
+          "Erreur lors de la récupération des utilisateurs : ",
+          error
+        );
       }
     };
 
@@ -242,7 +256,7 @@ const User = () => {
 
     fetchUsers();
     fetchCompanies();
-  }, []);
+  }, [sortOrder]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -329,7 +343,10 @@ const User = () => {
   const confirmDelete = async () => {
     if (selectedUser) {
       try {
+        // Supprimer l'utilisateur de Firestore
         await deleteDoc(doc(db, "users", selectedUser));
+
+        // Mettre à jour l'interface
         setUsers(users.filter((user) => user.id !== selectedUser));
         setFilteredUsers(
           filteredUsers.filter((user) => user.id !== selectedUser)
@@ -337,9 +354,16 @@ const User = () => {
         setShowDeleteModal(false);
         setSelectedUser(null);
       } catch (error) {
-        console.error("Error deleting user: ", error);
+        console.error(
+          "Erreur lors de la suppression de l'utilisateur : ",
+          error
+        );
       }
     }
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prevOrder) => (prevOrder === "desc" ? "asc" : "desc"));
   };
 
   return (
@@ -411,6 +435,13 @@ const User = () => {
                 <span style={{ color: "#CE9136" }}>utilisateur</span>
               </span>
             </Col>
+            <Col xs="auto">
+              <Button variant="link" onClick={toggleSortOrder}>
+                {sortOrder === "desc"
+                  ? "Plus récent d'abord"
+                  : "Plus ancien d'abord"}
+              </Button>
+            </Col>
           </Row>
           <Card className="card">
             <Card.Body>
@@ -420,7 +451,8 @@ const User = () => {
                     <th>Select user</th>
                     <th>Nom / Prénom</th>
                     <th>Email</th>
-                    <th>Dernière sphère</th>
+                    {/*  <th>Dernière sphère</th> */}
+                    <th>Date d'inscription</th>
                     <th>Entreprise</th>
                     <th>Business unit</th>
                     <th>Action</th>
@@ -439,6 +471,7 @@ const User = () => {
                       </td>
                       <td>{`${user.lastName} ${user.firstName}`}</td>
                       <td>{user.email}</td>
+                      {/* <td>{formatISODate(user.createdAt)}</td> */}
                       <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td
                         className="bold-brown"

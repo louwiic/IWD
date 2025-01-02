@@ -198,7 +198,7 @@ const Entreprise = () => {
       return;
     }
 
-    const queryText = searchQuery.toLowerCase();
+    const queryText = searchQuery.toUpperCase(); // Convertir la requête de recherche en majuscules
 
     try {
       // Requête pour rechercher par companyName

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Row, Col, Form, Button, Toast } from "react-bootstrap";
 import {
@@ -19,6 +19,16 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
   const history = useHistory();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -44,8 +54,10 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
         const userData = userDoc.data();
         localStorage.setItem("userIdStorage", user.uid);
         localStorage.setItem("role", userData.role);
+        localStorage.setItem("firstName", userData.firstName);
+        localStorage.setItem("lastName", userData.lastName);
         if (userData.role !== "admin") {
-          history.push("/user/test/");
+          history.push("/user/result");
         } else {
           history.push("/admin/home");
         }
@@ -66,77 +78,107 @@ const LoginPage = ({ handleShowLogin, setShowRegisterForm }) => {
 
   return (
     <div className="d-flex min-vh-100 no-scroll">
-      <Col md={4} className="p-0">
-        <div className="gradient-bg d-flex flex-column align-items-center justify-content-center">
-          <img
-            src={require("../assets/img/sphere.png")}
-            alt="Logo"
-            className="sphere"
-          />
-          <img
-            src={require("../assets/img/logo_lts.png")}
-            alt="Logo"
-            className="logo"
-          />
-        </div>
-      </Col>
-      <Col md={8} className="d-flex align-items-center justify-content-center">
-        <div className="w-75 login-form-container">
-          <h1>Bienvenue</h1>
-          <p className="info-text">Merci de participer au questionnaire LTS.</p>
-          <p className="subtext">
-            Vous devez créer votre compte personnel à l’aide d’un login et d’un
-            mot de passe de votre choix. Assurez-vous de sauvegarder vos
-            identifiants pour pouvoir accéder à vos résultats à tout moment
-          </p>
-          <Button
-            onClick={() => history.push("/signup")}
-            className="btn-fill mt-3 login-button"
-            type="submit"
-            disabled={isLoading}>
-            {isLoading ? "Chargement..." : "Créer un compte"}
-          </Button>
-          <div className="divider-container">
-            <span className="divider-line"></span>
-            <span className="divider-text">
-              Vous avez déjà un compte ? Continuez avec votre email
-            </span>
-            <span className="divider-line"></span>
+      {isMobile ? (
+        <Container className="d-flex align-items-center justify-content-center min-vh-100">
+          <div className="text-center p-4">
+            <img
+              src={require("../assets/img/logo_lts.png")}
+              alt="Logo"
+              className="logo mb-4"
+              style={{ maxWidth: "200px" }}
+            />
+            <h2>Version Mobile</h2>
+            <p className="mt-3">
+              Pour une meilleure expérience et pour visualiser vos résultats,
+              veuillez accéder à l'application depuis un ordinateur.
+            </p>
           </div>
-          <Form onSubmit={handleLogin} className="mt-5">
-            <Form.Group>
-              <Form.Label>Nom d’utilisateur (identifiants)</Form.Label>
-              <Form.Control
-                placeholder="Nom d’utilisateur"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+        </Container>
+      ) : (
+        <>
+          <Col md={4} className="p-0">
+            <div className="gradient-bg d-flex flex-column align-items-center justify-content-center">
+              <img
+                src={require("../assets/img/sphere.png")}
+                alt="Logo"
+                className="sphere"
               />
-            </Form.Group>
-            <Form.Group className="mt-3">
-              <Form.Label>Mot de passe</Form.Label>
-              <Form.Control
-                placeholder="Mot de passe"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              <img
+                src={require("../assets/img/logo_lts.png")}
+                alt="Logo"
+                className="logo"
               />
-            </Form.Group>
-            <Button
-              className="btn-fill mt-3 btn-primary-border"
-              type="submit"
-              disabled={isLoading}>
-              {isLoading ? "Chargement..." : "Se connecter"}
-            </Button>
-            {/* Ajout du lien "Mot de passe oublié ?" */}
-            <div className="mt-3 text-center">
-              <Button variant="link" onClick={handleForgotPassword}>
-                Mot de passe oublié ?
-              </Button>
             </div>
-          </Form>
-        </div>
-      </Col>
+          </Col>
+          <Col
+            md={8}
+            className="d-flex align-items-center justify-content-center">
+            <div className="w-75 login-form-container">
+              <h1>Bienvenue</h1>
+              <p className="info-text">
+                Merci de participer au questionnaire LTS.
+              </p>
+              <p className="subtext">
+                Vous devez créer votre compte personnel à l’aide d’un login et
+                d’un mot de passe de votre choix. Assurez-vous de sauvegarder
+                vos identifiants pour pouvoir accéder à vos résultats à tout
+                moment
+              </p>
+              <Button
+                onClick={() => history.push("/signup")}
+                className="btn-fill mt-3 login-button"
+                type="submit"
+                disabled={isLoading}>
+                {isLoading ? "Chargement..." : "Créer un compte"}
+              </Button>
+              <div className="divider-container">
+                <span className="divider-line"></span>
+                <span className="divider-text">
+                  Vous avez déjà un compte ? Continuez avec votre email
+                </span>
+                <span className="divider-line"></span>
+              </div>
+              <Form onSubmit={handleLogin} className="mt-5">
+                <Form.Group>
+                  <Form.Label>Votre adresse e-mail</Form.Label>
+                  <Form.Control
+                    placeholder="Nom d’utilisateur"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group className="mt-3">
+                  <Form.Label>Mot de passe</Form.Label>
+                  <Form.Control
+                    placeholder="Mot de passe"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </Form.Group>
+                <Button
+                  className="btn-fill mt-3 btn-primary-border"
+                  type="submit"
+                  disabled={isLoading}>
+                  {isLoading ? "Chargement..." : "Se connecter"}
+                </Button>
+                {/* Ajout du lien "Mot de passe oublié ?" */}
+                <div className="mt-4 d-flex justify-content-end">
+                  {" "}
+                  {/* Ajout de d-flex et justify-content-end pour aligner à droite */}
+                  <Button
+                    variant="link"
+                    style={{ fontSize: "0.8rem" }}
+                    onClick={handleForgotPassword}>
+                    Mot de passe oublié ?
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          </Col>
+        </>
+      )}
 
       <Toast
         onClose={() => setShowToast(false)}

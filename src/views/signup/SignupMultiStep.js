@@ -8,7 +8,15 @@ import Step3 from "./Step3";
 import { db } from "../../firebase/firebase";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
-import { doc, setDoc, collection, getDocs, getDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+  getDoc,
+  query,
+  where,
+} from "firebase/firestore";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 const MultiStepForm = () => {
@@ -33,7 +41,7 @@ const MultiStepForm = () => {
     phoneCode: "+33",
   });
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const currentStepFields = {
       0: [
         "firstName",
@@ -47,6 +55,29 @@ const MultiStepForm = () => {
       ],
       2: ["password", "passwordConfirm"],
     }[currentStep];
+
+    if (currentStep === 0 && formData.email) {
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("email", "==", formData.email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "Cet email est déjà utilisé. Veuillez en choisir un autre.",
+          }));
+          return;
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de l'email:", error);
+        setErrors((prev) => ({
+          ...prev,
+          email: "Une erreur est survenue lors de la vérification de l'email.",
+        }));
+        return;
+      }
+    }
 
     if (currentStep === 1) {
       const newStep2Errors = {};

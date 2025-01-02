@@ -36,16 +36,12 @@ function Sidebar({ color, image, routes }) {
         }}
       /> */}
       <div className="sidebar-wrapper">
-        <div className="logo d-flex align-items-center justify-content-start">
-          <a href="" className="simple-text">
-            <div className="logo-img">
-              <img
-                src={require("../../assets/img/logo_lts.png")}
-                alt="Logo"
-                className="logo"
-              />
-            </div>
-          </a>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <img
+            src={require("../../assets/img/logo_lts.png")}
+            alt="Logo"
+            className="logo"
+          />
         </div>
         <Nav>
           {routes.map((prop, key) => {

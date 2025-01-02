@@ -49,6 +49,11 @@ function Admin() {
       }
     });
   };
+
+  const getAdminRoutes = (routes) => {
+    return routes.filter((prop) => prop.layout === "/admin");
+  };
+
   React.useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
@@ -65,7 +70,7 @@ function Admin() {
   return (
     <>
       <div className="wrapper">
-        <Sidebar color={color} image={""} routes={routes} />
+        <Sidebar color={color} image={""} routes={getAdminRoutes(routes)} />
         <div className="main-panel" ref={mainPanel}>
           <AdminNavbar />
           <div className="content">

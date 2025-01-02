@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Table, Card, Form } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Table,
+  Card,
+  Form,
+  Button,
+} from "react-bootstrap";
 import {
   collection,
   getDocs,
@@ -7,6 +15,8 @@ import {
   where,
   orderBy,
   limit,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
@@ -15,6 +25,8 @@ const book = require("../assets/img/note.png");
 const user_iwd = require("../assets/img/user_iwd.png");
 const checked = require("../assets/img/checked.png");
 import "../css/home.css";
+const remove_icon = require("../assets/remove.png");
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const cardBodyStyle = {
   display: "flex",
@@ -28,61 +40,77 @@ const Dashboard = () => {
   const [companies, setCompanies] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [nbShared, setNbShared] = useState(0);
-  const [userPassedTest, setUserPassedTest] = useState(0);
   const [newTestSendedCount, setNewTestSendedCount] = useState(0);
-  const [todayTestUser, setTodayTestUser] = useState(null);
+  const [lastMonthTestUser, setLastMonthTestUser] = useState(null);
+  const [testsEnvoyesDernierMois, setTestsEnvoyesDernierMois] = useState(0);
+  const [nouveauxInscrits, setNouveauxInscrits] = useState(0);
+  const [testsPartages, setTestsPartages] = useState(0);
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const history = useHistory();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Étape 1: Récupérer tous les utilisateurs
-        const usersSnapshot = await getDocs(collection(db, "users"));
-        const usersData = usersSnapshot.docs.map((doc) => ({
+        // Créer la date d'il y a une semaine
+        const dateIlYaUneSemaine = new Date();
+        dateIlYaUneSemaine.setDate(dateIlYaUneSemaine.getDate() - 7);
+
+        // Modifier la requête pour inclure le filtre sur la date
+        const usersQuery = query(
+          collection(db, "users"),
+          where("createdAt", ">=", dateIlYaUneSemaine.toISOString()),
+          orderBy("createdAt", sortOrder)
+        );
+        const querySnapshot = await getDocs(usersQuery);
+        const usersData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        // Étape 2: Récupérer toutes les entreprises
+        // Récupérer les entreprises
         const companiesSnapshot = await getDocs(collection(db, "companies"));
         const companiesData = {};
         companiesSnapshot.docs.forEach((doc) => {
           companiesData[doc.id] = doc.data().companyName;
         });
 
-        // Étape 3: Récupérer tous les `UserTests` partagés
-        const sharedTestsQuery = query(
+        setUsers(usersData);
+        setFilteredUsers(usersData.slice(0, 5));
+        setCompanies(companiesData);
+
+        // Calculer le nombre de nouveaux inscrits des 30 derniers jours
+        const nombreNouveauxInscrits = usersData.length;
+
+        // Récupérer les tests envoyés des 30 derniers jours
+        const testsQuery = query(
           collection(db, "UserTests"),
-          where("sharedState", "==", true)
+          where("testDate", ">=", dateIlYa30Jours.toISOString())
         );
-        const sharedTestsSnapshot = await getDocs(sharedTestsQuery);
-        const sharedTestsCount = sharedTestsSnapshot.size;
+        const testsSnapshot = await getDocs(testsQuery);
+        const nombreTestsEnvoyes = testsSnapshot.size;
 
         // Étape 4: Compter le nombre d'utilisateurs ayant passé un test
-        const userIdsInTests = sharedTestsSnapshot.docs.map(
-          (doc) => doc.data().userId
-        );
+        const userIdsInTests = [];
         const usersWhoPassedTests = usersData.filter(
           (user) => !userIdsInTests.includes(user.id)
         ).length;
 
-        // Étape 5: Récupérer le test le plus récent d'aujourd'hui
-        const today = new Date().toISOString().split("T")[0]; // Récupère la date du jour au format 'YYYY-MM-DD'
-        const todayTestsQuery = query(
+        // Étape 5: Récupérer les tests partagés des 30 derniers jours
+        const testsPartagesQuery = query(
           collection(db, "UserTests"),
-          where("testDate", ">=", `${today}T00:00:00.000Z`),
-          where("testDate", "<=", `${today}T23:59:59.999Z`),
-          orderBy("testDate", "desc"),
-          limit(1) // Limiter à un seul document, le plus récent
+          where("sharedDate", ">=", dateIlYa30Jours.toISOString()),
+          orderBy("sharedDate", "desc"),
+          limit(1)
         );
-        const todayTestSnapshot = await getDocs(todayTestsQuery);
+        const lastSharedTestSnapshot = await getDocs(testsPartagesQuery);
 
-        let todayTestUser = null;
-        if (!todayTestSnapshot.empty) {
-          const todayTest = todayTestSnapshot.docs[0].data();
-          todayTestUser = usersData.find(
-            (user) => user.id === todayTest.userId
+        let lastMonthTestUser = null;
+        if (!lastSharedTestSnapshot.empty) {
+          const lastSharedTest = lastSharedTestSnapshot.docs[0].data();
+          lastMonthTestUser = usersData.find(
+            (user) => user.id === lastSharedTest.userId
           );
         }
 
@@ -94,20 +122,29 @@ const Dashboard = () => {
           return count;
         }, 0);
 
+        // Compter le nombre total de tests partagés (utiliser une variable différente)
+        const allTestsPartagesQuery = query(
+          collection(db, "UserTests"),
+          where("sharedDate", "!=", null)
+        );
+        const testsPartagesSnapshot = await getDocs(allTestsPartagesQuery);
+        const nombreTestsPartages = testsPartagesSnapshot.size;
+
         // Mettre à jour les états
         setUsers(usersData);
         setFilteredUsers(usersData.slice(0, 5));
         setCompanies(companiesData);
-        setNbShared(sharedTestsCount);
-        setUserPassedTest(usersWhoPassedTests);
-        setTodayTestUser(todayTestUser); // Assurez-vous d'avoir un état pour `todayTestUser`
-        setNewTestSendedCount(newTestSendedCount); // Assurez-vous d'avoir un état pour `newTestSendedCount`
+        setLastMonthTestUser(lastMonthTestUser);
+        setNewTestSendedCount(newTestSendedCount);
+        setTestsEnvoyesDernierMois(nombreTestsEnvoyes);
+        setNouveauxInscrits(nombreNouveauxInscrits);
+        setTestsPartages(nombreTestsPartages);
       } catch (error) {
         console.error("Erreur lors de la récupération des données:", error);
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [sortOrder]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -129,11 +166,41 @@ const Dashboard = () => {
     history.push(`/admin/entreprise/users?companyId=${companyId}`);
   };
 
-  const handleUserClick = (userId?) => {
-    let id = userId ?? todayTestUser?.id;
+  const handleUserClick = (userId) => {
+    console.log("userId", userId);
+    console.log("lastMonthTestUser", lastMonthTestUser);
+    let id = lastMonthTestUser?.id || userId;
     if (id) {
       history.push(`/admin/results?userId=${id}`);
     }
+  };
+
+  const handleDeleteUser = (userId) => {
+    setSelectedUser(userId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedUser) {
+      try {
+        await deleteDoc(doc(db, "users", selectedUser));
+        setUsers(users.filter((user) => user.id !== selectedUser));
+        setFilteredUsers(
+          filteredUsers.filter((user) => user.id !== selectedUser)
+        );
+        setShowDeleteModal(false);
+        setSelectedUser(null);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la suppression de l'utilisateur : ",
+          error
+        );
+      }
+    }
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prevOrder) => (prevOrder === "desc" ? "asc" : "desc"));
   };
 
   return (
@@ -153,15 +220,17 @@ const Dashboard = () => {
           <span className="title-kpi">Tests envoyés</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">{newTestSendedCount}</Card.Text>
+              <Card.Text className="kpi-circle">
+                {testsEnvoyesDernierMois}
+              </Card.Text>
             </Card.Body>
           </Card>
         </Col>
         <Col md={4}>
-          <span className="title-kpi">Tests passés</span>
+          <span className="title-kpi">Nouveaux inscrits</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">{userPassedTest}</Card.Text>
+              <Card.Text className="kpi-circle">{nouveauxInscrits}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -169,7 +238,7 @@ const Dashboard = () => {
           <span className="title-kpi">Tests partagés</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">{nbShared}</Card.Text>
+              <Card.Text className="kpi-circle">{testsPartages}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -177,13 +246,20 @@ const Dashboard = () => {
       <Row className="mt-4">
         <Col>
           <Row className="ml-1 mt-4 align-items-center">
-            <img src={book} alt="book" className="icon" />
-            <div>
+            <Col>
+              <img src={book} alt="book" className="icon" />
               <span className="title-kpi">
                 Dernières inscriptions réalisées cette{" "}
                 <span style={{ color: "#CE9136" }}>semaine</span>
               </span>
-            </div>
+            </Col>
+            <Col xs="auto">
+              <Button variant="link" onClick={toggleSortOrder}>
+                {sortOrder === "desc"
+                  ? "Plus récent d'abord"
+                  : "Plus ancien d'abord"}
+              </Button>
+            </Col>
           </Row>
           <Card className="card">
             <Card.Body>
@@ -224,11 +300,11 @@ const Dashboard = () => {
                   <tr>
                     <th>Select user</th>
                     <th>Nom / Prénom</th>
-                    <th>Login</th>
                     <th>Email</th>
-                    <th>Dernière sphère</th>
+                    <th>Date d'inscription</th>
                     <th>Entreprise</th>
                     <th>Business unit</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -236,24 +312,38 @@ const Dashboard = () => {
                     <tr key={user.id}>
                       <td
                         className="text-center align-middle"
+                        style={{ cursor: "pointer" }}
                         onClick={() => handleUserClick(user.id)}>
-                        <img src={user_iwd} alt="user_iwd" className="icon" />
+                        <span className="img-conent">
+                          <img src={user_iwd} alt="user_iwd" className="icon" />
+                        </span>
                       </td>
                       <td>{`${user.lastName} ${user.firstName}`}</td>
-                      <td>{user.login}</td>
                       <td>{user.email}</td>
                       <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td
                         className="bold-brown"
-                        onClick={() => handleCompanyClick(user.company)}
-                        style={{
-                          cursor: "pointer",
-                          color:
-                            user.company !== "Inconnu" ? "#CE9136" : "inherit",
-                        }}>
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleCompanyClick(user.company)}>
                         {companies[user.company] || "Inconnu"}
                       </td>
                       <td>{user.businessUnit}</td>
+                      <td>
+                        <span
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="img-content"
+                          style={{
+                            cursor: "pointer",
+                            padding: "5px",
+                            borderRadius: "5px",
+                          }}>
+                          <img
+                            src={remove_icon}
+                            alt="remove_icon"
+                            className="icon"
+                          />
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -282,24 +372,32 @@ const Dashboard = () => {
                   style={{ height: 45 }}
                 />
                 <Card.Text>
-                  <h1 className="title">Dernier questionnaire complété</h1>
+                  <h4 className="title">Dernier test partagé</h4>
                 </Card.Text>
               </div>
-              {todayTestUser ? (
+              {lastMonthTestUser ? (
                 <div className="result-link">
                   <a
                     onClick={handleUserClick}
-                    href="#">{`Voir les résultat de ${todayTestUser.firstName} ${todayTestUser.lastName}`}</a>
+                    href="#">{`Voir les résultats de ${lastMonthTestUser.firstName} ${lastMonthTestUser.lastName}`}</a>
                 </div>
               ) : (
                 <div className="result-link">
-                  <p>{`Aucun test passé`}</p>
+                  <p>{`Aucun test passé ce mois-ci`}</p>
                 </div>
               )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
+
+      <ConfirmDeleteModal
+        show={showDeleteModal}
+        handleClose={() => setShowDeleteModal(false)}
+        handleConfirm={confirmDelete}
+        title={"Supprimer définitivement cette utilisateur ?"}
+        companyName={""}
+      />
     </Container>
   );
 };

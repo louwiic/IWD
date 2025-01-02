@@ -1,8 +1,15 @@
+.activity-timeline-container {
+  display: flex;
+  flex-direction: column;
+}
+
 .activity-title {
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 20px;
-  text-align: left;
+  margin-top: 30px;
+   text-align: left;
+  margin-left: 40px;
+  margin-bottom: 40px;
 }
 
 .timeline {
@@ -10,6 +17,7 @@
   padding-left: 0;
   position: relative;
   margin-left: 40px; /* Adjusted for spacing */
+  margin-top: 10px; /* Added margin to space below the title */
 }
 
 /* Commented out or removed the vertical line */

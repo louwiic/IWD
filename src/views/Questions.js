@@ -9,7 +9,13 @@ import {
   Toast,
 } from "react-bootstrap";
 import { db } from "../firebase/firebase";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+  writeBatch,
+} from "firebase/firestore";
 const style_pen = require("../assets/style_pen.png");
 const logo = require("../assets/sphera.png");
 
@@ -23,14 +29,53 @@ const Questions = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
 
+  const moveCategory = async (fromIndex, toIndex) => {
+    try {
+      const batch = writeBatch(db);
+
+      // Créer une copie du tableau des catégories
+      const updatedCategories = [...categories];
+
+      // Déplacer la catégorie
+      const [movedCategory] = updatedCategories.splice(fromIndex, 1);
+      updatedCategories.splice(toIndex, 0, movedCategory);
+
+      // Mettre à jour l'ordre dans Firebase
+      updatedCategories.forEach((category, index) => {
+        const categoryRef = doc(db, "questions", category.id);
+        batch.update(categoryRef, { ordre: index });
+      });
+
+      await batch.commit();
+
+      // Mettre à jour l'état local
+      setCategories(updatedCategories);
+      showNotification(
+        "Ordre des catégories mis à jour avec succès !",
+        "success"
+      );
+    } catch (error) {
+      console.error("Erreur lors du changement d'ordre: ", error);
+      showNotification(
+        "Erreur lors du changement d'ordre des catégories.",
+        "danger"
+      );
+    }
+  };
+
+  // Modifier le fetchQuestions pour trier par ordre
   const fetchQuestions = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "questions"));
       const questionsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
+        ordre: doc.data().ordre || 0, // Ajouter un ordre par défaut
         ...doc.data(),
       }));
-      setCategories(questionsData);
+      console.log("questionsData", questionsData);
+      // Trier les catégories par ordre
+      const sortedQuestions = questionsData.sort((a, b) => a.ordre - b.ordre);
+      setCategories(sortedQuestions);
     } catch (error) {
       console.error("Error fetching questions: ", error);
     }
@@ -141,15 +186,41 @@ const Questions = () => {
                 value={selectedCategory}>
                 <option value="">Sélectionnez une catégorie</option>
                 {(categories || []).map((category, index) => (
-                  <option key={index} value={category.id}>
+                  <option key={category.id} value={category.id}>
                     {category.categorie}
                   </option>
                 ))}
               </Form.Control>
             </Form.Group>
-            <Card className="card">
-              <Card.Body>
-                {currentCategory ? (
+            {/* <div className="mt-2">
+              {(categories || []).map((category, index) => (
+                <div
+                  key={category.id}
+                  className="d-flex align-items-center mb-2">
+                  <span>{category.categorie}</span>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onClick={() => moveCategory(index, index + 1)}
+                    disabled={index === categories.length - 1}
+                    className="ms-2">
+                    ↓
+                  </Button>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onClick={() => moveCategory(index, index - 1)}
+                    disabled={index === 0}
+                    className="ms-2">
+                    ↑
+                  </Button>
+                </div>
+              ))}
+            </div> */}
+
+            {currentCategory ? (
+              <Card className="card">
+                <Card.Body>
                   <div>
                     <h5
                       className="mb-4"
@@ -174,7 +245,11 @@ const Questions = () => {
                         </span>
                         <Form.Control
                           type="text"
-                          value={q}
+                          value={
+                            responses[index] !== undefined
+                              ? responses[index]
+                              : q
+                          }
                           onChange={(e) =>
                             handleResponseChange(index, e.target.value)
                           }
@@ -196,11 +271,11 @@ const Questions = () => {
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <p>Sélectionnez une catégorie pour afficher les questions</p>
-                )}
-              </Card.Body>
-            </Card>
+                </Card.Body>{" "}
+              </Card>
+            ) : (
+              <></>
+            )}
           </Col>
         </Col>
       </Row>
