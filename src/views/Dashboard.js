@@ -658,13 +658,13 @@ const DashboardForward = React.forwardRef((props, ref) => {
                         bottom="50px"
                         right="150px"
                         labelText="Confiance"
-                        colorText={"rgba(226, 168, 50, 1)"}
+                        colorText={"rgba(255, 140, 0, 1)"}
                       />
                       <RadarLabel
                         bottom="60px"
                         left="280px"
                         labelText="Conflit"
-                        colorText={"rgba(226, 220, 50, 1)"}
+                        colorText={"rgba(139, 69, 19, 1)"}
                       />
                     </div>
                   </div>

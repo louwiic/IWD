@@ -27,9 +27,9 @@ function drawPointLabels(scale, labelCount) {
     ...Array(12).fill("rgba(135, 0, 0, 0.3)"),     // Vos valeurs
     ...Array(9).fill("rgba(0, 38, 142, 0.2)"),     // Etat d'esprit
     ...Array(9).fill("rgba(226, 50, 50, 0.2)"),    // Communication
-    ...Array(9).fill("rgba(226, 168, 50, 0.3)"),   // Confiance
-    ...Array(10).fill("rgba(226, 220, 50, 0.2)"),  // Conflit
-    ...Array(10).fill("rgba(168, 220, 50, 0.3)"),  // Résilience
+    ...Array(9).fill("rgba(255, 140, 0, 0.6)"),   // Confiance
+    ...Array(10).fill("rgba(139, 69, 19, 0.5)"),   // Conflit
+    ...Array(10).fill("rgba(168, 220, 50, 0.6)"),  // Résilience
     ...Array(16).fill("rgba(50, 226, 185, 0.4)"),  // Vous-même
     ...Array(8).fill("rgba(83, 109, 254, 0.2)"),   // Dans le futur
   ];
@@ -107,70 +107,70 @@ function drawPointLabels(scale, labelCount) {
 }
 
 function drawGroupLabels(scale, groupLabels) {
- /*  const {
-    ctx,
-    xCenter,
-    yCenter,
-    drawingArea,
-    options: { pointLabels },
-  } = scale;
-
-  // Récupérer la distance de l'option ou utiliser une valeur par défaut
-  const labelDistance = pointLabels.groupLabelDistance || 50;
-
-  const radius = drawingArea + labelDistance; // Utiliser la distance configurable
-  const angleStep = (Math.PI * 2) / scale._pointLabels.length;
-  const segmentSizes = [
-    6,  // Vous aujourd'hui
-    12, // Vos valeurs
-    9,  // Etat d'esprit
-    9,  // Communication
-    9,  // Confiance
-    10, // Conflit
-    10, // Résilience
-    16, // Vous-même
-    8,  // Dans le futur
-  ];
-
-  let startIndex = 0;
-  for (let i = 0; i < groupLabels.length; i++) {
-    const segmentSize = segmentSizes[i];
-    const midIndex = startIndex + Math.floor(segmentSize / 2);
-    const angle = (angleStep * midIndex) - (Math.PI / 2);
-
-    const labelX = xCenter + Math.cos(angle) * radius;
-    const labelY = yCenter + Math.sin(angle) * radius;
-
-    ctx.save();
-    ctx.translate(labelX, labelY);
-
-    let rotationAngle = angle;
-
-    if (angle > Math.PI / 2 && angle < (3 * Math.PI) / 2) {
-      rotationAngle += Math.PI;
-    }
-
-    ctx.rotate(rotationAngle);
-
-    const plFont = toFont(pointLabels.font);
-
-    renderText(
-      ctx,
-      groupLabels[i],
-      0,
-      0,
-      plFont,
-      {
-        color: pointLabels.color,
-        textAlign: "center",
-        textBaseline: "middle",
-      }
-    );
-
-    ctx.restore();
-
-    startIndex += segmentSize;
-  } */
+  /*  const {
+     ctx,
+     xCenter,
+     yCenter,
+     drawingArea,
+     options: { pointLabels },
+   } = scale;
+ 
+   // Récupérer la distance de l'option ou utiliser une valeur par défaut
+   const labelDistance = pointLabels.groupLabelDistance || 50;
+ 
+   const radius = drawingArea + labelDistance; // Utiliser la distance configurable
+   const angleStep = (Math.PI * 2) / scale._pointLabels.length;
+   const segmentSizes = [
+     6,  // Vous aujourd'hui
+     12, // Vos valeurs
+     9,  // Etat d'esprit
+     9,  // Communication
+     9,  // Confiance
+     10, // Conflit
+     10, // Résilience
+     16, // Vous-même
+     8,  // Dans le futur
+   ];
+ 
+   let startIndex = 0;
+   for (let i = 0; i < groupLabels.length; i++) {
+     const segmentSize = segmentSizes[i];
+     const midIndex = startIndex + Math.floor(segmentSize / 2);
+     const angle = (angleStep * midIndex) - (Math.PI / 2);
+ 
+     const labelX = xCenter + Math.cos(angle) * radius;
+     const labelY = yCenter + Math.sin(angle) * radius;
+ 
+     ctx.save();
+     ctx.translate(labelX, labelY);
+ 
+     let rotationAngle = angle;
+ 
+     if (angle > Math.PI / 2 && angle < (3 * Math.PI) / 2) {
+       rotationAngle += Math.PI;
+     }
+ 
+     ctx.rotate(rotationAngle);
+ 
+     const plFont = toFont(pointLabels.font);
+ 
+     renderText(
+       ctx,
+       groupLabels[i],
+       0,
+       0,
+       plFont,
+       {
+         color: pointLabels.color,
+         textAlign: "center",
+         textBaseline: "middle",
+       }
+     );
+ 
+     ctx.restore();
+ 
+     startIndex += segmentSize;
+   } */
 }
 
 
@@ -269,27 +269,27 @@ class CustomRadialLinearScale extends RadialLinearScale {
     let i, offset, position;
 
     const segmentColors = [
-      '#607d8b', 
-      '#78909c',  
-      '#90a4ae',  
-      '#b0bec5',  
-      '#cfd8dc',  
-      '#eceff1',  
-      '#e0e0e0',  
-      '#eeeeee',  
-      '#f5f5f5',  
-      '#fafafa',  
+      '#607d8b',
+      '#78909c',
+      '#90a4ae',
+      '#b0bec5',
+      '#cfd8dc',
+      '#eceff1',
+      '#e0e0e0',
+      '#eeeeee',
+      '#f5f5f5',
+      '#fafafa',
     ];
 
     const groupLabels = [
-      "Vous aujourd'hui", 
-      'Vos valeurs', 
-      "Etat d'esprit", 
-      'Communication', 
-      'Confiance', 
-      'Conflit', 
-      'Résilience', 
-      'Vous-même', 
+      "Vous aujourd'hui",
+      'Vos valeurs',
+      "Etat d'esprit",
+      'Communication',
+      'Confiance',
+      'Conflit',
+      'Résilience',
+      'Vous-même',
       'Dans le futur'
     ];
 
