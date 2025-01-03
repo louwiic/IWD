@@ -187,7 +187,7 @@ const Questions = () => {
                 <option value="">Sélectionnez une catégorie</option>
                 {(categories || []).map((category, index) => (
                   <option key={category.id} value={category.id}>
-                    {category.categorie}
+                    {index + 1}. {category.categorie}
                   </option>
                 ))}
               </Form.Control>

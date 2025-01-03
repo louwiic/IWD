@@ -573,7 +573,7 @@ const DashboardForward = React.forwardRef((props, ref) => {
               <Card style={{ borderRadius: "4px" }}>
                 <Card.Body>
                   <span>
-                    {userInfos?.firstName} {userInfos?.lastName} vous n'avez pas encore débloquer le questionnaire !!
+                    Vos résultats ne sont pas encore disponibles.
                   </span>
                 </Card.Body>
               </Card>

@@ -183,9 +183,7 @@ const Test = () => {
     }
   };
 
-  useEffect(() => {
-    setShowSuccessModal(true);
-  }, [])
+
   const handleNext = () => {
     const currentQuestions = categories[currentCategoryIndex]?.questions || [];
     const allAnswered = currentQuestions.every(
