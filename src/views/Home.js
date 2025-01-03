@@ -17,6 +17,7 @@ import {
   limit,
   deleteDoc,
   doc,
+  Timestamp,
 } from "firebase/firestore";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
@@ -53,15 +54,14 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Créer la date d'il y a une semaine
-        const dateIlYaUneSemaine = new Date();
-        dateIlYaUneSemaine.setDate(dateIlYaUneSemaine.getDate() - 7);
+        // Modifier la date pour 30 jours au lieu de 7
+        const dateIlYa30Jours = new Date();
+        dateIlYa30Jours.setDate(dateIlYa30Jours.getDate() - 30);
 
-        // Modifier la requête pour inclure le filtre sur la date
+        // Modifier la requête pour utiliser dateIlYa30Jours
         const usersQuery = query(
           collection(db, "users"),
-          where("createdAt", ">=", dateIlYaUneSemaine.toISOString()),
-          orderBy("createdAt", sortOrder)
+          where("createdAt", ">=", dateIlYa30Jours.toISOString())
         );
         const querySnapshot = await getDocs(usersQuery);
         const usersData = querySnapshot.docs.map((doc) => ({
@@ -86,7 +86,7 @@ const Dashboard = () => {
         // Récupérer les tests envoyés des 30 derniers jours
         const testsQuery = query(
           collection(db, "UserTests"),
-          where("testDate", ">=", dateIlYa30Jours.toISOString())
+          where("newTestSended", ">=", dateIlYa30Jours.toISOString())
         );
         const testsSnapshot = await getDocs(testsQuery);
         const nombreTestsEnvoyes = testsSnapshot.size;
@@ -122,10 +122,11 @@ const Dashboard = () => {
           return count;
         }, 0);
 
-        // Compter le nombre total de tests partagés (utiliser une variable différente)
+        // Modifier la requête pour filtrer par sharedDate
         const allTestsPartagesQuery = query(
           collection(db, "UserTests"),
-          where("sharedDate", "!=", null)
+          where("sharedState", "==", true),
+          where("sharedDate", ">=", Timestamp.fromDate(dateIlYa30Jours))
         );
         const testsPartagesSnapshot = await getDocs(allTestsPartagesQuery);
         const nombreTestsPartages = testsPartagesSnapshot.size;
@@ -217,20 +218,20 @@ const Dashboard = () => {
 
       <Row className="my-4">
         <Col md={4}>
+          <span className="title-kpi">Nouveaux inscrits</span>
+          <Card style={cardBodyStyle} className="text-center center-content">
+            <Card.Body className="body-card">
+              <Card.Text className="kpi-circle">{nouveauxInscrits}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
           <span className="title-kpi">Tests envoyés</span>
           <Card style={cardBodyStyle} className="text-center center-content">
             <Card.Body className="body-card">
               <Card.Text className="kpi-circle">
                 {testsEnvoyesDernierMois}
               </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <span className="title-kpi">Nouveaux inscrits</span>
-          <Card style={cardBodyStyle} className="text-center center-content">
-            <Card.Body className="body-card">
-              <Card.Text className="kpi-circle">{nouveauxInscrits}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
